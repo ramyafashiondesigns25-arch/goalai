@@ -1,0 +1,13 @@
+{
+  "name": "goalai",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "engines": { "node": ">=20.9" },
+  "scripts": {
+    "dev:web": "npm run dev -w @goalai/web",
+    "dev:admin": "npm run dev -w @goalai/admin",
+    "build": "npm run build -w @goalai/web && npm run build -w @goalai/admin",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test -w @goalai/core"
+  }
+}
