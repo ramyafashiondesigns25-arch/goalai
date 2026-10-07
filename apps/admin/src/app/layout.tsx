@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import { isFounder } from "@goalai/core/lib/supabase/server";
+import { adminAccess } from "@goalai/core/lib/supabase/server";
 import { GoalaiMark } from "@goalai/core/components/Logo";
 import { AdminLogin } from "@/components/AdminLogin";
 import { AdminNav } from "@/components/AdminNav";
@@ -15,7 +15,7 @@ export const viewport: Viewport = { themeColor: "#D81B60" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const me = await isFounder();
+  const me = await adminAccess();
   return (
     <html lang="en-IN" className={`${display.variable} ${body.variable} ${tamil.variable}`}>
       <body>
@@ -26,7 +26,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </header>
         <main className="admin glow">
           <div className="wrap">
-            {me.ok ? (<><AdminNav email={me.email ?? ""} />{children}</>) : <AdminLogin signedInAs={me.email} />}
+            {me.role ? (<><AdminNav email={me.email ?? ""} role={me.role} />{children}</>) : <AdminLogin signedInAs={me.email} />}
           </div>
         </main>
       </body>

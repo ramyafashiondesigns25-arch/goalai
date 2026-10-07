@@ -1,2 +1,3 @@
 import { CustomersAdmin } from "@/components/CustomersAdmin";
-export default function Page() { return <CustomersAdmin />; }
+import { FounderOnly } from "@/components/FounderOnly";
+export default function Page() { return <FounderOnly><CustomersAdmin /></FounderOnly>; }

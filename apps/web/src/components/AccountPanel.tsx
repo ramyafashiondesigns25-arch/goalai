@@ -5,14 +5,15 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { browserClient } from "@goalai/core/lib/supabase/browser";
 import { rupee } from "@goalai/core/lib/pricing";
-import { STATUS_LABEL, type OrderStatus } from "@goalai/core/lib/types";
+import { PAID_VIA_LABEL, STATUS_LABEL, type OrderStatus } from "@goalai/core/lib/types";
 import { useAuth } from "./AuthProvider";
 
 interface MyOrder {
   id: string; code: string; status: OrderStatus; total: number; delivery_fee: number; fulfilment: string; created_at: string;
+  payment_method: string; payment_status: string; paid_via: string | null;
   store_order_items: { name: string; size: string; qty: number; line_total: number }[];
 }
-interface MyRequest { id: number; service: string; project: string | null; message: string | null; created_at: string; ref: string | null; status: string }
+interface MyRequest { id: number; service: string; project: string | null; message: string | null; created_at: string; updated_at: string; ref: string | null; status: string; stage: string; progress: number; updates: unknown[] }
 
 const date = (s: string) => new Date(s).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 
@@ -28,7 +29,7 @@ export function AccountPanel() {
   useEffect(() => {
     if (!user) return;
     const sb = browserClient();
-    sb.from("store_orders").select("id,code,status,total,delivery_fee,fulfilment,created_at,store_order_items(name,size,qty,line_total)")
+    sb.from("store_orders").select("id,code,status,total,delivery_fee,fulfilment,created_at,payment_method,payment_status,paid_via,store_order_items(name,size,qty,line_total)")
       .eq("customer_user_id", user.id).order("created_at", { ascending: false }).limit(50)
       .then(({ data }) => setOrders((data ?? []) as MyOrder[]));
     sb.rpc("my_service_requests").then(({ data }) => setRequests((data ?? []) as MyRequest[]));
@@ -84,6 +85,7 @@ export function AccountPanel() {
                 <ol>
                   {o.store_order_items.map((i, k) => <li key={k}><span>{i.name} · {i.size} × {i.qty}</span><span>{rupee(i.line_total)}</span></li>)}
                   <li><span>{o.fulfilment === "PICKUP" ? "Pick up at shop" : "Delivery"}</span><span>{o.delivery_fee ? rupee(o.delivery_fee) : "Free"}</span></li>
+                  <li><span>Payment</span><span>{o.payment_status === "PAID" ? `Paid · ${PAID_VIA_LABEL[o.paid_via ?? ""] ?? ""}` : o.status === "CANCELLED" ? "—" : `${o.payment_method === "COD" ? "Cash" : "UPI"} on delivery`}</span></li>
                 </ol>
               </details>
             ))}
@@ -93,14 +95,16 @@ export function AccountPanel() {
             {requests === null ? <p className="muted">Loading…</p> : requests.length === 0 ? (
               <p className="muted">No requests yet. <Link href="/services">See our services</Link></p>
             ) : (
-              <div className="admtable"><table style={{ minWidth: 0 }}>
-                <thead><tr><th>Service</th><th>Sent</th><th>Status</th></tr></thead>
-                <tbody>{requests.map((r) => (
-                  <tr key={r.id}><td><b>{r.service}</b>{r.project && <small>{r.project}</small>}{r.ref && <small>Ref {r.ref}</small>}</td>
-                    <td>{date(r.created_at)}</td>
-                    <td><span className={`pill${r.status === "Completed" ? " pill--done" : r.status === "Received" ? " pill--new" : ""}`}>{r.status}</span></td></tr>
-                ))}</tbody>
-              </table></div>
+              <div style={{ display: "grid", gap: ".8rem", marginTop: ".6rem" }}>{requests.map((r) => (
+                <Link key={r.id} href={`/account/requests/${r.id}`} className="bcmp" style={{ display: "grid", gap: ".4rem", textDecoration: "none", color: "inherit", padding: ".8rem 1rem" }}>
+                  <span style={{ display: "flex", justifyContent: "space-between", gap: ".6rem", flexWrap: "wrap" }}>
+                    <b>{r.service}{r.project ? ` · ${r.project}` : ""}</b>
+                    <span className={`pill${r.status === "Completed" ? " pill--done" : r.status === "Received" ? " pill--new" : ""}`}>{r.status} · {r.progress}%</span>
+                  </span>
+                  <span className="progress" aria-hidden="true"><span style={{ width: `${r.progress}%` }} /></span>
+                  <small className="muted">Sent {date(r.created_at)}{r.updates.length ? ` · ${r.updates.length} update${r.updates.length === 1 ? "" : "s"} from our team` : ""} · View details →</small>
+                </Link>
+              ))}</div>
             )}
           </div>
         </div>

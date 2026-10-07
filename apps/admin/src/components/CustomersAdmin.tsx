@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { browserClient } from "@goalai/core/lib/supabase/browser";
 import { rupee } from "@goalai/core/lib/pricing";
@@ -51,7 +52,7 @@ export function CustomersAdmin() {
             const a = agg[r.id];
             return (
               <tr key={r.id}>
-                <td><b>{r.full_name || "—"}</b><small>{r.email}</small></td>
+                <td><Link href={`/customers/${r.id}`}><b>{r.full_name || r.email || "—"}</b></Link><small>{r.email}</small><small><Link href={`/customers/${r.id}`}>Full record · Print / PDF</Link></small></td>
                 <td>{r.phone ? <><a href={`tel:+91${r.phone}`}>{r.phone}</a><small><a href={`https://wa.me/91${r.phone}`} target="_blank" rel="noopener">WhatsApp</a></small></> : <span className="muted">—</span>}</td>
                 <td><small>{[r.address, r.city, r.pincode].filter(Boolean).join(", ") || "—"}</small></td>
                 <td>{a?.orders ?? 0}{a?.last && <small>last {new Date(a.last).toLocaleDateString("en-IN")}</small>}</td>

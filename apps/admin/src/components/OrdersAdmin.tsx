@@ -1,19 +1,21 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { browserClient } from "@goalai/core/lib/supabase/browser";
 import { rupee } from "@goalai/core/lib/pricing";
 import { ORDER_STATUSES, STATUS_LABEL, type OrderStatus } from "@goalai/core/lib/types";
 import { revalidateStore } from "@/app/actions";
+import { PaymentControl } from "./PaymentControl";
 
 interface OrderRow {
   id: string; code: string; customer_name: string; phone: string; email: string | null; fulfilment: string;
   address: string | null; pincode: string | null; notes: string | null; total: number; delivery_fee: number;
-  payment_method: string; status: OrderStatus; ref_code: string | null; created_at: string;
+  payment_method: string; payment_status: string; paid_via: string | null; paid_at: string | null; payment_ref: string | null; status: OrderStatus; ref_code: string | null; created_at: string;
   store_order_items: { name: string; size: string; qty: number; price: number; line_total: number }[];
 }
 
-const FILTERS = [{ id: "open", label: "Open" }, { id: "all", label: "All" }, ...ORDER_STATUSES.map((s) => ({ id: s, label: STATUS_LABEL[s] }))];
+const FILTERS = [{ id: "open", label: "Open" }, { id: "unpaid", label: "Payment due" }, { id: "all", label: "All" }, ...ORDER_STATUSES.map((s) => ({ id: s, label: STATUS_LABEL[s] }))];
 
 export function OrdersAdmin() {
   const [rows, setRows] = useState<OrderRow[]>([]);
@@ -26,6 +28,7 @@ export function OrdersAdmin() {
     setLoading(true);
     let q = browserClient().from("store_orders").select("*, store_order_items(name,size,qty,price,line_total)").order("created_at", { ascending: false }).limit(200);
     if (filter === "open") q = q.in("status", ["NEW", "CONFIRMED", "PACKED", "OUT_FOR_DELIVERY"]);
+    else if (filter === "unpaid") q = q.eq("payment_status", "PENDING").neq("status", "CANCELLED");
     else if (filter !== "all") q = q.eq("status", filter);
     const { data, error } = await q;
     setLoading(false);
@@ -55,18 +58,20 @@ export function OrdersAdmin() {
       </nav>
       {err && <p className="form-err">{err}</p>}
       <div className="admtable"><table>
-        <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+        <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead>
         <tbody>
-          {loading ? <tr><td colSpan={5} className="empty">Loading…</td></tr> : rows.length === 0 ? <tr><td colSpan={5} className="empty">No orders here.</td></tr> : rows.map((o) => (
+          {loading ? <tr><td colSpan={6} className="empty">Loading…</td></tr> : rows.length === 0 ? <tr><td colSpan={6} className="empty">No orders here.</td></tr> : rows.map((o) => (
             <tr key={o.id}>
-              <td><b>{o.code}</b><small>{new Date(o.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</small>
-                {o.ref_code && <small>Ref {o.ref_code}</small>}</td>
+              <td><Link href={`/orders/${o.id}`}><b>{o.code}</b></Link><small>{new Date(o.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</small>
+                {o.ref_code && <small>Ref {o.ref_code}</small>}
+                <small><Link href={`/orders/${o.id}`}>View · Print / PDF</Link></small></td>
               <td><b>{o.customer_name}</b>
                 <small><a href={`tel:+91${o.phone}`}>{o.phone}</a> · <a href={`https://wa.me/91${o.phone}?text=${encodeURIComponent(`Hi ${o.customer_name}, this is Goalai about your order ${o.code}.`)}`} target="_blank" rel="noopener">WhatsApp</a></small>
                 <small>{o.fulfilment === "PICKUP" ? "Pick up" : `Deliver: ${o.address ?? ""}${o.pincode ? " – " + o.pincode : ""}`}</small>
                 {o.notes && <small>Note: {o.notes}</small>}</td>
               <td>{o.store_order_items.map((i, k) => <small key={k}>{i.name} {i.size} × {i.qty}</small>)}</td>
-              <td><b>{rupee(o.total)}</b><small>{o.payment_method === "COD" ? "Cash" : "UPI"} on delivery{o.delivery_fee ? ` · incl. ${rupee(o.delivery_fee)} delivery` : ""}</small></td>
+              <td><b>{rupee(o.total)}</b>{o.delivery_fee ? <small>incl. {rupee(o.delivery_fee)} delivery</small> : null}</td>
+              <td><PaymentControl order={o} onChange={load} /></td>
               <td>
                 <select className="ostat" value={o.status} disabled={busy === o.id || o.status === "CANCELLED"} onChange={(e) => setStatus(o, e.target.value as OrderStatus)} aria-label={`Status of ${o.code}`}>
                   {ORDER_STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}

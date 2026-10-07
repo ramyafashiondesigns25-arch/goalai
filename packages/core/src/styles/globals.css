@@ -528,3 +528,45 @@ footer .wrap { padding-right: 70px; }
 @media (max-width: 960px) { .nav .nav-login { margin: .7rem 16px 1rem; justify-content: center; } }
 .gate { text-align: center; padding: 1.4rem 1rem; }
 .gate p { color: var(--muted); }
+
+/* ---------- payments, work updates, printable sheets ---------- */
+.paybox { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .35rem; }
+.paybox .btn { padding: .35rem .7rem; font-size: .76rem; }
+.pill--paid { background: #E7F4EA; color: #1C5E36; }
+.pill--due { background: #FFF0D6; color: #7A5206; }
+.progress { height: 10px; border-radius: 999px; background: #F4E3EA; overflow: hidden; }
+.progress > span { display: block; height: 100%; background: linear-gradient(90deg, #FF7AAE, var(--pink)); border-radius: inherit; }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+.timeline li { border-left: 3px solid var(--blush-2); padding: .1rem 0 .1rem .8rem; }
+.timeline li b { display: block; }
+.timeline li small { color: var(--muted); font-size: .76rem; }
+.timeline li.is-internal { border-left-color: #E9C46A; background: #FFF9EC; border-radius: 0 8px 8px 0; }
+.workcard { border: 1px solid var(--line); border-radius: var(--r-md); padding: 1rem; display: grid; gap: .7rem; background: var(--white); }
+.workcard__head { display: flex; flex-wrap: wrap; gap: .5rem; align-items: baseline; justify-content: space-between; }
+.workform { display: grid; gap: .5rem; grid-template-columns: 1fr 1fr; }
+.workform .full { grid-column: 1 / -1; }
+@media (max-width: 640px) { .workform { grid-template-columns: 1fr; } }
+.sheet { background: var(--white); border: 1px solid var(--line); border-radius: var(--r-lg); padding: clamp(1rem, 3vw, 2rem); display: grid; gap: 1.1rem; }
+.sheet__head { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: flex-start; border-bottom: 2px solid var(--pink); padding-bottom: .9rem; }
+.sheet__head h1 { margin: 0; font-size: clamp(1.4rem, 3vw, 2rem); }
+.sheet__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.sheet__grid h3 { margin: 0 0 .3rem; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.sheet__grid p { margin: 0; line-height: 1.5; }
+.sheet table { width: 100%; border-collapse: collapse; }
+.sheet th, .sheet td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); font-size: .88rem; }
+.sheet th { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.sheet td.num, .sheet th.num { text-align: right; white-space: nowrap; }
+.sheet tfoot td { font-weight: 800; border-bottom: 0; }
+.sheet__foot { font-size: .78rem; color: var(--muted); }
+.sheet__acts { display: flex; flex-wrap: wrap; gap: .5rem; }
+@media print {
+  @page { margin: 12mm; }
+  body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .topbar, .admin__live, .adm-nav, .noprint, footer, .wa-float, .announce, .cartbar, .drawer, .veil, .toast { display: none !important; }
+  .admin { padding: 0 !important; min-height: 0 !important; }
+  .glow::before, .glow::after { display: none !important; }
+  .sheet, .admcard { border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+  .wrap { max-width: none !important; padding: 0 !important; }
+  a { color: inherit !important; text-decoration: none !important; }
+  .sheet tr, .timeline li { break-inside: avoid; }
+}

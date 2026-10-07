@@ -1,2 +1,3 @@
 import { LeadsAdmin } from "@/components/LeadsAdmin";
-export default function Page() { return <LeadsAdmin />; }
+import { FounderOnly } from "@/components/FounderOnly";
+export default function Page() { return <FounderOnly><LeadsAdmin /></FounderOnly>; }

@@ -6,7 +6,7 @@ import { browserClient } from "@goalai/core/lib/supabase/browser";
 
 export function AdminLogin({ signedInAs }: { signedInAs: string | null }) {
   const router = useRouter();
-  const [msg, setMsg] = useState(signedInAs ? `${signedInAs} isn't a Founder account.` : "");
+  const [msg, setMsg] = useState(signedInAs ? `${signedInAs} isn't an active Goalai team account.` : "");
   const [busy, setBusy] = useState(false);
 
   const signIn = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -22,8 +22,8 @@ export function AdminLogin({ signedInAs }: { signedInAs: string | null }) {
 
   return (
     <div className="admcard admgate">
-      <h2>Founder sign-in</h2>
-      <p className="lede">Use your GOALAI Founder account. Only Founders can change products, prices and orders.</p>
+      <h2>Team sign-in</h2>
+      <p className="lede">Use your GOALAI CRM account. Founders manage everything; team members can update service work for customers.</p>
       {signedInAs ? (
         <button className="btn btn--white" type="button" onClick={signOut}>Sign out and use another account</button>
       ) : (

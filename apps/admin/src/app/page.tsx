@@ -1,2 +1,3 @@
 import { Overview } from "@/components/Overview";
-export default function Page() { return <Overview />; }
+import { FounderOnly } from "@/components/FounderOnly";
+export default function Page() { return <FounderOnly><Overview /></FounderOnly>; }

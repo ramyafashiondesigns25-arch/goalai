@@ -27,3 +27,14 @@ export async function isFounder(): Promise<{ ok: boolean; email: string | null }
   const { data } = await sb.rpc("is_founder");
   return { ok: data === true, email: user.email ?? null };
 }
+
+export type AdminRole = "FOUNDER" | "STAFF";
+
+/** Who may use the admin console: Founders see everything; other active team members see Service work only. */
+export async function adminAccess(): Promise<{ role: AdminRole | null; email: string | null }> {
+  const sb = await sessionClient();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return { role: null, email: null };
+  const { data } = await sb.rpc("my_admin_role");
+  return { role: data === "FOUNDER" || data === "STAFF" ? data : null, email: user.email ?? null };
+}

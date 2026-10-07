@@ -77,3 +77,15 @@ export const STATUS_LABEL: Record<OrderStatus, string> = {
   DELIVERED: "Delivered",
   CANCELLED: "Cancelled",
 };
+
+/* ---------- payments ---------- */
+export const PAYMENT_METHOD_LABEL: Record<string, string> = { COD: "Cash on delivery", UPI_ON_DELIVERY: "UPI on delivery", ONLINE: "Paid online" };
+export const PAID_VIA_LABEL: Record<string, string> = { CASH: "Cash", UPI: "UPI" };
+
+/* ---------- service work ---------- */
+export const WORK_STAGES = ["RECEIVED", "IN_PROGRESS", "ON_HOLD", "COMPLETED", "CANCELLED"] as const;
+export type WorkStage = (typeof WORK_STAGES)[number];
+export const WORK_STAGE_LABEL: Record<WorkStage, string> = {
+  RECEIVED: "Received", IN_PROGRESS: "In progress", ON_HOLD: "On hold", COMPLETED: "Completed", CANCELLED: "Cancelled",
+};
+export interface WorkUpdate { id?: number; stage: WorkStage; progress: number; note: string; internal?: boolean; author?: string | null; by?: string | null; created_at: string }
