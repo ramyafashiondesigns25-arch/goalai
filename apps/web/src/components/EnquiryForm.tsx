@@ -33,7 +33,7 @@ export function EnquiryForm({ services, defaultService, defaultProject, title = 
     return (
       <div className="form-card gate">
         <h2>{title}</h2>
-        <p>Log in with a one-time email code to send a request and follow its status in your account.</p>
+        <p>Log in or create an account to send a request and follow its status in your account.</p>
         <Link className="btn btn--pink" href={`/login?next=${encodeURIComponent(path)}`}>Log in to send a request</Link>
       </div>
     );

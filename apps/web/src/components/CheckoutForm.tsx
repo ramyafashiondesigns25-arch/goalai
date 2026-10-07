@@ -27,7 +27,7 @@ export function CheckoutForm({ settings }: { settings: StoreSettings }) {
     return (
       <div className="form-card gate" style={{ maxWidth: 520, margin: "0 auto" }}>
         <h2>Log in to place your order</h2>
-        <p>Your basket is saved. Log in with a one-time email code — new customers are signed up in the same step.</p>
+        <p>Your basket is saved. Log in with your email and password — new here? Create an account in a few seconds.</p>
         <Link className="btn btn--pink" href="/login?next=/checkout">Log in to continue</Link>
       </div>
     );

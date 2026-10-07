@@ -63,7 +63,10 @@ export function AccountPanel() {
         <div><p className="eyebrow">My account</p>
           <h1 style={{ fontSize: "clamp(2rem,4.5vw,3rem)", margin: 0 }}>Hello{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}</h1>
           <p>Signed in as {user.email}</p></div>
-        <button className="btn btn--white" type="button" onClick={async () => { await signOut(); router.replace("/"); }}>Sign out</button>
+        <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
+          <Link className="btn btn--white" href="/account/password">Change password</Link>
+          <button className="btn btn--white" type="button" onClick={async () => { await signOut(); router.replace("/"); }}>Sign out</button>
+        </div>
       </div>
 
       <div className="two-col">
