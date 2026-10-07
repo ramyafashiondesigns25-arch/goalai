@@ -1,0 +1,39 @@
+{
+  "name": "@goalai/core",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    "./lib/types": "./src/lib/types.ts",
+    "./lib/pricing": "./src/lib/pricing.ts",
+    "./lib/pack": "./src/lib/pack.ts",
+    "./lib/mappers": "./src/lib/mappers.ts",
+    "./lib/catalog": "./src/lib/catalog.ts",
+    "./lib/site": "./src/lib/site.ts",
+    "./lib/env": "./src/lib/env.ts",
+    "./lib/supabase/public": "./src/lib/supabase/public.ts",
+    "./lib/supabase/server": "./src/lib/supabase/server.ts",
+    "./lib/supabase/browser": "./src/lib/supabase/browser.ts",
+    "./components/ProductVisual": "./src/components/ProductVisual.tsx",
+    "./components/Logo": "./src/components/Logo.tsx",
+    "./components/PriceCheck": "./src/components/PriceCheck.tsx",
+    "./styles.css": "./src/styles/globals.css"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@supabase/ssr": ">=0.12",
+    "@supabase/supabase-js": ">=2.100",
+    "next": ">=16",
+    "react": ">=19"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.3"
+  }
+}
