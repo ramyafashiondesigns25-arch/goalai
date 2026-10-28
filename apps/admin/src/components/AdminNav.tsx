@@ -9,7 +9,11 @@ const LINKS = [
   { href: "/orders", label: "Orders", staff: false },
   { href: "/work", label: "Service work", staff: true },
   { href: "/products", label: "Products", staff: false },
+  { href: "/categories", label: "Categories", staff: false },
   { href: "/customers", label: "Customers", staff: false },
+  { href: "/coupons", label: "Coupons", staff: false },
+  { href: "/opportunities", label: "Opportunities", staff: false },
+  { href: "/applications", label: "Applications", staff: false },
   { href: "/leads", label: "Website leads", staff: false },
   { href: "/settings", label: "Settings", staff: false },
 ];

@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { trackOrder, type TrackedOrder } from "@/app/actions";
 import { rupee } from "@goalai/core/lib/pricing";
 import { STATUS_LABEL, type OrderStatus } from "@goalai/core/lib/types";
+import { whatsappLink, whatsappPayMessage } from "@goalai/core/lib/share";
 
 const FLOW: OrderStatus[] = ["NEW", "CONFIRMED", "PACKED", "OUT_FOR_DELIVERY", "DELIVERED"];
 
@@ -51,9 +52,20 @@ export function TrackForm({ initialCode = "", whatsapp }: { initialCode?: string
           {order.items.map((it, i) => (
             <div className="sum" key={i}><span>{it.name} · {it.size} × {it.qty}</span><span>{rupee(it.line)}</span></div>
           ))}
+          {order.discount > 0 && <div className="sum sum--disc"><span>Coupon{order.coupon_code ? ` ${order.coupon_code}` : ""}</span><span>− {rupee(order.discount)}</span></div>}
           <div className="sum"><span>Delivery</span><span>{order.delivery_fee ? rupee(order.delivery_fee) : "Free"}</span></div>
           <div className="sum sum--total"><span>Total</span><span>{rupee(order.total)}</span></div>
-          <a className="btn btn--wa btn--block" style={{ marginTop: "1rem" }} href={`https://wa.me/${whatsapp}?text=${waText}`} target="_blank" rel="noopener">Ask about this order on WhatsApp</a>
+          {order.status !== "CANCELLED" && order.payment_status !== "PAID" && (
+            <>
+              <a className="btn btn--wa btn--block" style={{ marginTop: "1rem" }} target="_blank" rel="noopener"
+                href={whatsappLink(whatsapp, whatsappPayMessage({ code: order.code, name: order.name, total: order.total, discount: order.discount, delivery_fee: order.delivery_fee, fulfilment: order.fulfilment, items: order.items }))}>
+                Pay {rupee(order.total)} on WhatsApp
+              </a>
+              <p className="muted" style={{ fontSize: ".82rem", margin: ".5rem 0 0" }}>Opens WhatsApp with your order filled in. We reply with our UPI details, confirm your payment and pack your order.</p>
+            </>
+          )}
+          {order.payment_status === "PAID" && <p className="coupon__ok" style={{ marginBottom: 0 }}>✔ Payment received. Thank you!</p>}
+          <a className="btn btn--white btn--block" style={{ marginTop: ".6rem" }} href={`https://wa.me/${whatsapp}?text=${waText}`} target="_blank" rel="noopener">Ask about this order on WhatsApp</a>
         </div>
       )}
     </div>

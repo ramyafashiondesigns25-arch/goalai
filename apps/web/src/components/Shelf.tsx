@@ -2,24 +2,29 @@
 
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { STORE_CATS } from "@goalai/core/lib/catalog";
+import { inShelf, mainCats, subsOf, type StoreCategory } from "@goalai/core/lib/catalog";
 import type { Product, StoreSettings } from "@goalai/core/lib/types";
 import { ProductCard } from "./ProductCard";
 
 /** Category rail + search + grid. Category lives in the URL (?cat=) so it can be shared. */
-export function Shelf({ products, settings }: { products: Product[]; settings: StoreSettings }) {
+export function Shelf({ products, settings, cats }: { products: Product[]; settings: StoreSettings; cats: StoreCategory[] }) {
   const params = useSearchParams();
   const router = useRouter();
-  const cat = params.get("cat") ?? "all";
+  const mains = useMemo(() => mainCats(cats), [cats]);
+  const wantCat = params.get("cat") ?? "all";
+  const cat = wantCat === "all" || mains.some((c) => c.id === wantCat) ? wantCat : "all";
+  const subs = useMemo(() => (cat === "all" ? [] : subsOf(cats, cat)), [cats, cat]);
+  const wantSub = params.get("sub");
+  const sub = wantSub && subs.some((c) => c.id === wantSub) ? wantSub : null;
   const [q, setQ] = useState("");
 
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return products.filter((p) => (cat === "all" || p.cat === cat) &&
+    return products.filter((p) => inShelf(p, cat, sub) &&
       (!needle || `${p.name} ${p.ta} ${p.tag} ${p.desc}`.toLowerCase().includes(needle)));
-  }, [products, cat, q]);
+  }, [products, cat, sub, q]);
 
-  const pick = (id: string) => router.replace(id === "all" ? "/shop" : `/shop?cat=${id}`, { scroll: false });
+  const pick = (id: string, subId?: string | null) => router.replace(id === "all" ? "/shop" : `/shop?cat=${id}${subId ? `&sub=${subId}` : ""}`, { scroll: false });
 
   return (
     <>
@@ -32,12 +37,22 @@ export function Shelf({ products, settings }: { products: Product[]; settings: S
         </label>
       </div>
       <div className="rail"><div className="rail__in" role="toolbar" aria-label="Product categories">
-        {[{ id: "all", name: "All items" }, ...STORE_CATS].map((c) => (
+        {[{ id: "all", name: "All items" }, ...mains].map((c) => (
           <button key={c.id} type="button" aria-pressed={cat === c.id} onClick={() => pick(c.id)}>
             {c.name} <small>{c.id === "all" ? products.length : products.filter((p) => p.cat === c.id).length}</small>
           </button>
         ))}
       </div></div>
+      {subs.length > 0 && (
+        <div className="subrail" role="toolbar" aria-label="Sub-categories">
+          <button type="button" aria-pressed={!sub} onClick={() => pick(cat)}>All <small>{products.filter((p) => p.cat === cat).length}</small></button>
+          {subs.map((c) => (
+            <button key={c.id} type="button" aria-pressed={sub === c.id} onClick={() => pick(cat, c.id)}>
+              {c.name}{c.ta ? ` · ${c.ta}` : ""} <small>{products.filter((p) => p.sub === c.id).length}</small>
+            </button>
+          ))}
+        </div>
+      )}
       <div className="shelf">
         {list.length ? list.map((p) => <ProductCard key={p.id} p={p} s={settings} />)
           : <div className="empty"><b>{products.length ? `Nothing matches “${q}”` : "Fresh stock is on its way"}</b>{products.length ? "Try another word, or pick All items." : "Please check back shortly."}</div>}

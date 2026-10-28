@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { CartProvider } from "@/components/CartProvider";
 import { AuthProvider } from "@/components/AuthProvider";
+import { WishProvider } from "@/components/WishProvider";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -34,11 +35,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a className="skip" href="#main">Skip to content</a>
         <AuthProvider>
         <CartProvider>
-          <div className="announce">100% organic · Free delivery in Kodungaiyur above ₹{settings.freeAbove} · Pay COD or UPI on delivery</div>
+        <WishProvider>
+          <div className="announce">100% organic · Free delivery in Kodungaiyur above ₹{settings.freeAbove} · Order online · pay on WhatsApp chat</div>
           <Header />
           <main id="main">{children}</main>
           <Footer whatsapp={settings.whatsapp} />
           <CartDrawer settings={settings} />
+        </WishProvider>
         </CartProvider>
         </AuthProvider>
       </body>

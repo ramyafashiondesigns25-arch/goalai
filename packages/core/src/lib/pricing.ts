@@ -1,7 +1,7 @@
 import type { Product, StoreSettings } from "./types";
 
 export const DEFAULT_SETTINGS: StoreSettings = {
-  onlinePct: 15, retailPct: 50, capMrp: true, freeAbove: 499, deliveryFee: 40, whatsapp: "916380150117",
+  onlinePct: 15, retailPct: 50, capMrp: true, freeAbove: 499, deliveryFee: 40, whatsapp: "916380150117", upiId: "", upiName: "Goalai",
 };
 
 export const rupee = (n: number) => "₹" + Math.round(n || 0).toLocaleString("en-IN");
@@ -27,3 +27,9 @@ export function comparePrices(p: Pick<Product, "price" | "mrp">, s: StoreSetting
 
 export const deliveryFor = (sub: number, mode: "PICKUP" | "DELIVERY", s: StoreSettings) =>
   mode === "PICKUP" || sub === 0 || sub >= s.freeAbove ? 0 : s.deliveryFee;
+
+/** One-line description of what a coupon gives, e.g. "10% off up to ₹100 on orders of ₹300+". */
+export function couponLabel(c: { kind: "PERCENT" | "FLAT"; value: number; min_order: number; max_discount: number | null }): string {
+  const off = c.kind === "PERCENT" ? `${c.value}% off${c.max_discount ? ` up to ${rupee(c.max_discount)}` : ""}` : `${rupee(c.value)} off`;
+  return c.min_order > 0 ? `${off} on orders of ${rupee(c.min_order)}+` : off;
+}

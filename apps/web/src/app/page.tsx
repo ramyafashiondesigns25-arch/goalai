@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { getProducts, getServices, getSettings } from "@/lib/data";
-import { KITS, STORE_CATS } from "@goalai/core/lib/catalog";
+import { getProducts, getServices, getSettings, getStoreCategories } from "@/lib/data";
+import { KITS, mainCats } from "@goalai/core/lib/catalog";
 import { SITE } from "@goalai/core/lib/site";
 import { HeroStage } from "@/components/HeroStage";
 import { ProductCard } from "@/components/ProductCard";
@@ -14,7 +14,8 @@ export const revalidate = 300;
 const HERO_IDS = ["cashew", "almond", "mix", "pista", "rice", "ghee", "dates"];
 
 export default async function Home() {
-  const [products, services, settings] = await Promise.all([getProducts(), getServices(), getSettings()]);
+  const [products, services, settings, allCats] = await Promise.all([getProducts(), getServices(), getSettings(), getStoreCategories()]);
+  const shelves = mainCats(allCats);
   const byId = new Map(products.map((p) => [p.id, p]));
   const hero = [...HERO_IDS.map((id) => byId.get(id)).filter(Boolean) as Product[], ...products].filter((p, i, a) => a.indexOf(p) === i).slice(0, 7);
   const featured = products.filter((p) => p.cat === "nuts").slice(0, 8);
@@ -24,7 +25,7 @@ export default async function Home() {
   const jsonLd = {
     "@context": "https://schema.org", "@type": "GroceryStore", name: "Goalai", url: SITE.url, telephone: SITE.phone,
     address: { "@type": "PostalAddress", addressLocality: "Kodungaiyur, Chennai", addressRegion: SITE.region, postalCode: SITE.postalCode, addressCountry: "IN" },
-    paymentAccepted: "Cash, UPI", priceRange: "₹₹",
+    paymentAccepted: "UPI, Cash", priceRange: "₹₹",
   };
 
   return (
@@ -43,7 +44,7 @@ export default async function Home() {
             <div className="facts">
               <div><b>{products.length || "—"}</b>organic products</div>
               <div><b>₹{settings.freeAbove}</b>free delivery above</div>
-              <div><b>COD / UPI</b>pay when it arrives</div>
+              <div><b>WhatsApp pay</b>we confirm on chat</div>
             </div>
           </div>
           <HeroStage products={hero} />
@@ -53,7 +54,7 @@ export default async function Home() {
       <div className="ribbon" aria-hidden="true"><div className="ribbon__track">
         {[0, 1].map((k) => (
           <span key={k} style={{ display: "contents" }}>
-            {["100% organic", "Cashew · Almond · Pista", "Dates & raisins", "Millets & karupatti", "Wood-pressed oils", "Fresh-ground masala", `Free delivery above ₹${settings.freeAbove}`, "COD / UPI"].map((w) => (
+            {["100% organic", "Cashew · Almond · Pista", "Dates & raisins", "Millets & karupatti", "Wood-pressed oils", "Fresh-ground masala", `Free delivery above ₹${settings.freeAbove}`, "Pay on WhatsApp"].map((w) => (
               <span key={w + k} style={{ display: "contents" }}><span>{w}</span><span>✦</span></span>
             ))}
           </span>
@@ -64,7 +65,7 @@ export default async function Home() {
         <div className="wrap">
           <div className="head"><div><p className="eyebrow">Shop by shelf</p><h2 id="catTitle">Every shelf, one basket</h2></div></div>
           <div className="cats">
-            {STORE_CATS.map((c) => {
+            {shelves.map((c) => {
               const first = products.find((p) => p.cat === c.id);
               return (
                 <Link key={c.id} className="cat lit" href={`/shop?cat=${c.id}`}>

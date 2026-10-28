@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { comparePrices, deliveryFor, DEFAULT_SETTINGS, offPct, rupee } from "../src/lib/pricing";
+import { comparePrices, couponLabel, deliveryFor, DEFAULT_SETTINGS, offPct, rupee } from "../src/lib/pricing";
 import { packSvg } from "../src/lib/pack";
 
 describe("pricing", () => {
@@ -35,5 +35,17 @@ describe("pack drawing", () => {
   it("falls back to a safe colour", () => {
     const svg = packSvg({ id: "x", name: "N", size: "1", ta: "", tag: "T", color: "red;}", type: "pouch" });
     expect(svg).toContain("#C98A4B");
+  });
+});
+
+describe("coupon label", () => {
+  it("describes percent coupons with a cap and a minimum", () => {
+    expect(couponLabel({ kind: "PERCENT", value: 10, min_order: 300, max_discount: 100 })).toBe("10% off up to ₹100 on orders of ₹300+");
+  });
+  it("describes flat coupons with no minimum", () => {
+    expect(couponLabel({ kind: "FLAT", value: 50, min_order: 0, max_discount: null })).toBe("₹50 off");
+  });
+  it("does not mention a cap that is not set", () => {
+    expect(couponLabel({ kind: "PERCENT", value: 15, min_order: 0, max_discount: null })).toBe("15% off");
   });
 });

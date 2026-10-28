@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { placeOrder } from "@/app/actions";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { checkCoupon, placeOrder } from "@/app/actions";
 import { deliveryFor, rupee } from "@goalai/core/lib/pricing";
 import type { StoreSettings } from "@goalai/core/lib/types";
 import { useCart } from "./CartProvider";
@@ -15,9 +15,40 @@ export function CheckoutForm({ settings }: { settings: StoreSettings }) {
   const { ready, user, profile, refreshProfile } = useAuth();
   const router = useRouter();
   const [mode, setMode] = useState<"PICKUP" | "DELIVERY">("PICKUP");
-  const [pay, setPay] = useState<"COD" | "UPI_ON_DELIVERY">("COD");
+  const pay = "WHATSAPP" as const; // no payment gateway: the order is paid by chatting on WhatsApp
   const [err, setErr] = useState("");
   const [pending, start] = useTransition();
+  // coupon: the discount shown here is only a preview — place_order() prices it again in the database
+  const [couponInput, setCouponInput] = useState("");
+  const [applied, setApplied] = useState<{ code: string; discount: number } | null>(null);
+  const [couponMsg, setCouponMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
+  const checked = useRef(0);
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code) return;
+    setCouponBusy(true); setCouponMsg(null);
+    const res = await checkCoupon(code, subtotal);
+    setCouponBusy(false);
+    if (res.ok) { setApplied({ code: res.code, discount: res.discount }); setCouponMsg({ ok: true, text: res.message }); setCouponInput(""); }
+    else { setApplied(null); setCouponMsg({ ok: false, text: res.message }); }
+  };
+  const removeCoupon = () => { setApplied(null); setCouponMsg(null); };
+
+  // the basket changed (quantity, removed item): re-check the coupon so the preview stays honest
+  const appliedCode = applied?.code;
+  useEffect(() => {
+    if (!appliedCode) return;
+    const id = ++checked.current;
+    const t = setTimeout(async () => {
+      const res = await checkCoupon(appliedCode, subtotal);
+      if (id !== checked.current) return;
+      if (res.ok) setApplied({ code: res.code, discount: res.discount });
+      else { setApplied(null); setCouponMsg({ ok: false, text: res.message }); }
+    }, 350);
+    return () => clearTimeout(t);
+  }, [appliedCode, subtotal]);
 
   if (!lines.length) {
     return <div className="empty"><b>Your basket is empty</b><Link className="btn btn--pink" href="/shop?cat=nuts" style={{ marginTop: "1rem" }}>Browse the store</Link></div>;
@@ -33,6 +64,8 @@ export function CheckoutForm({ settings }: { settings: StoreSettings }) {
     );
   }
   const fee = deliveryFor(subtotal, mode, settings);
+  const discount = applied ? Math.min(applied.discount, subtotal) : 0;
+  const total = subtotal - discount + fee;
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -42,7 +75,7 @@ export function CheckoutForm({ settings }: { settings: StoreSettings }) {
       const res = await placeOrder({
         name: String(f.get("name") ?? ""), phone: String(f.get("phone") ?? ""), email: user.email ?? "",
         fulfilment: mode, address: String(f.get("address") ?? ""), pincode: String(f.get("pincode") ?? ""),
-        notes: String(f.get("notes") ?? ""), payment_method: pay, ref, website: String(f.get("website") ?? ""),
+        notes: String(f.get("notes") ?? ""), payment_method: pay, coupon: applied?.code, ref, website: String(f.get("website") ?? ""),
         items: lines.map((l) => ({ id: l.id, qty: l.qty })),
       });
       if (!res.ok) { setErr(res.error); return; }
@@ -72,9 +105,9 @@ export function CheckoutForm({ settings }: { settings: StoreSettings }) {
             <div className="field"><label htmlFor="co-pin">PIN code</label><input id="co-pin" name="pincode" inputMode="numeric" autoComplete="postal-code" maxLength={6} defaultValue={profile?.pincode ?? ""} /></div>
           </div>
         )}
-        <div className="seg" role="radiogroup" aria-label="Payment">
-          <label><input type="radio" name="pay" checked={pay === "COD"} onChange={() => setPay("COD")} /><span>Cash on delivery</span></label>
-          <label><input type="radio" name="pay" checked={pay === "UPI_ON_DELIVERY"} onChange={() => setPay("UPI_ON_DELIVERY")} /><span>UPI on delivery</span></label>
+        <div className="paywa" role="note">
+          <b>Payment on WhatsApp chat</b><br />
+          Place your order, then tap <b>Pay on WhatsApp</b>. We send our UPI details on chat, confirm your payment and pack your order. No card or online gateway needed.
         </div>
         <div className="field"><label htmlFor="co-notes">Note for us (optional)</label><input id="co-notes" name="notes" maxLength={500} /></div>
         <div className="hp" aria-hidden="true"><label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
@@ -98,11 +131,28 @@ export function CheckoutForm({ settings }: { settings: StoreSettings }) {
             </div>
           ))}
         </div>
+        <div className="coupon">
+          {applied ? (
+            <div className="coupon__on" role="status">
+              <span><b>{applied.code}</b> applied</span>
+              <button type="button" className="linkbtn" onClick={removeCoupon}>Remove</button>
+            </div>
+          ) : (
+            <div className="coupon__row">
+              <input aria-label="Coupon code" placeholder="Coupon code" value={couponInput} maxLength={20} autoCapitalize="characters" autoComplete="off"
+                onChange={(e) => setCouponInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCoupon(); } }} />
+              <button className="btn btn--white btn--sm" type="button" onClick={applyCoupon} disabled={couponBusy || !couponInput.trim()}>{couponBusy ? "Checking…" : "Apply"}</button>
+            </div>
+          )}
+          {couponMsg && <p className={couponMsg.ok ? "coupon__ok" : "form-err"} role="status">{couponMsg.text}</p>}
+        </div>
         <div className="sum" style={{ marginTop: ".6rem" }}><span>Items</span><span>{rupee(subtotal)}</span></div>
+        {discount > 0 && <div className="sum sum--disc"><span>Coupon {applied?.code}</span><span>− {rupee(discount)}</span></div>}
         <div className="sum"><span>{mode === "PICKUP" ? "Pick up at shop" : "Delivery"}</span><span>{fee ? rupee(fee) : "Free"}</span></div>
-        <div className="sum sum--total"><span>Total</span><span>{rupee(subtotal + fee)}</span></div>
+        <div className="sum sum--total"><span>Total</span><span>{rupee(total)}</span></div>
         <p className="muted" style={{ fontSize: ".78rem" }}>Prices and stock are confirmed when you place the order. Pay when you receive it.</p>
-        <button className="btn btn--pink btn--block" type="submit" disabled={pending}>{pending ? "Placing order…" : `Place order · ${rupee(subtotal + fee)}`}</button>
+        <button className="btn btn--pink btn--block" type="submit" disabled={pending}>{pending ? "Placing order…" : `Place order · ${rupee(total)}`}</button>
         <p className="form-err" role="alert">{err}</p>
       </div>
     </form>

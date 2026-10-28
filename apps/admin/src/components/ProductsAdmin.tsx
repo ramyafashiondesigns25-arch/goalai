@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { browserClient } from "@goalai/core/lib/supabase/browser";
 import { PHOTO_BUCKET } from "@goalai/core/lib/env";
-import { STORE_CATS, catName } from "@goalai/core/lib/catalog";
+import { STORE_CATS, catName, mainCats, subsOf, type StoreCategory } from "@goalai/core/lib/catalog";
 import { fromRow, toRow } from "@goalai/core/lib/mappers";
 import { offPct, rupee } from "@goalai/core/lib/pricing";
 import type { Product, ProductRow } from "@goalai/core/lib/types";
@@ -11,7 +11,7 @@ import { revalidateStore } from "@/app/actions";
 import { ProductVisual } from "@goalai/core/components/ProductVisual";
 
 const blank = (): Product => ({
-  id: "", cat: STORE_CATS[0]!.id, name: "", ta: "", size: "", price: 0, mrp: 0, stock: 20, desc: "", details: [], cert: "",
+  id: "", cat: STORE_CATS[0]!.id, sub: null, name: "", ta: "", size: "", price: 0, mrp: 0, stock: 20, desc: "", details: [], cert: "",
   isNew: false, img: null, imgPath: null, type: "pouch", tag: "", color: STORE_CATS[0]!.color, sort: 0, active: true,
 });
 
@@ -43,6 +43,13 @@ export function ProductsAdmin() {
   const [loading, setLoading] = useState(true);
   const [edit, setEdit] = useState<Product | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [cats, setCats] = useState<StoreCategory[]>(STORE_CATS);
+
+  // categories made in admin → Categories (falls back to the built-in shelves if they cannot be read)
+  useEffect(() => {
+    browserClient().from("store_categories").select("id,parent_id,name,ta,color,sort,active").order("sort").order("name")
+      .then(({ data }) => { if (data?.length) setCats(data as StoreCategory[]); });
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -53,7 +60,7 @@ export function ProductsAdmin() {
   }, []);
   useEffect(() => { load(); }, [load]);
 
-  const list = items.filter((p) => !q || `${p.name} ${p.ta} ${catName(p.cat)}`.toLowerCase().includes(q.toLowerCase()));
+  const list = items.filter((p) => !q || `${p.name} ${p.ta} ${catName(p.cat, cats)} ${catName(p.sub, cats)}`.toLowerCase().includes(q.toLowerCase()));
 
   const exportBackup = () => {
     const blob = new Blob([JSON.stringify({ exported: new Date().toISOString(), products: items.map(toRow) }, null, 1)], { type: "application/json" });
@@ -67,7 +74,7 @@ export function ProductsAdmin() {
         <label className="search admsearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
           <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products" aria-label="Search products" /></label>
         <button className="btn btn--white btn--sm" type="button" onClick={exportBackup}>Download backup</button>
-        <button className="btn btn--pink btn--sm" type="button" onClick={() => { setIsNew(true); setEdit(blank()); }}>+ Add product</button>
+        <button className="btn btn--pink btn--sm" type="button" onClick={() => { setIsNew(true); setEdit({ ...blank(), cat: mainCats(cats)[0]?.id ?? STORE_CATS[0]!.id, color: mainCats(cats)[0]?.color ?? STORE_CATS[0]!.color }); }}>+ Add product</button>
       </div>
       {err && <p className="form-err">{err}</p>}
       <div className="admtable"><table>
@@ -77,7 +84,7 @@ export function ProductsAdmin() {
             <tr key={p.id} className={p.active ? undefined : "is-hidden"}>
               <td><div className="admthumb"><ProductVisual p={p} variant="adm" /></div></td>
               <td><b>{p.name}</b><small>{p.ta} · {p.size}{p.active ? "" : " · hidden from store"}</small></td>
-              <td>{catName(p.cat)}</td>
+              <td>{catName(p.cat, cats)}{p.sub && <small>{catName(p.sub, cats)}</small>}</td>
               <td><s>{rupee(p.mrp)}</s></td>
               <td><b>{rupee(p.price)}</b>{offPct(p) > 0 && <small>{offPct(p)}% off</small>}</td>
               <td>{p.stock === 0 ? <span className="pill pill--out">Out</span> : <span className="pill">{p.stock ?? "—"}</span>}</td>
@@ -87,13 +94,13 @@ export function ProductsAdmin() {
           ))}
         </tbody>
       </table></div>
-      {edit && <ProductEditor key={edit.id || "new"} product={edit} isNew={isNew} existing={items} onClose={() => setEdit(null)} onSaved={async () => { setEdit(null); await load(); }} />}
+      {edit && <ProductEditor key={edit.id || "new"} product={edit} isNew={isNew} existing={items} cats={cats} onClose={() => setEdit(null)} onSaved={async () => { setEdit(null); await load(); }} />}
     </div>
   );
 }
 
-function ProductEditor({ product, isNew, existing, onClose, onSaved }:
-  { product: Product; isNew: boolean; existing: Product[]; onClose: () => void; onSaved: () => void }) {
+function ProductEditor({ product, isNew, existing, cats, onClose, onSaved }:
+  { product: Product; isNew: boolean; existing: Product[]; cats: StoreCategory[]; onClose: () => void; onSaved: () => void }) {
   const [p, setP] = useState<Product>(product);
   const [details, setDetails] = useState(product.details.map(([k, v]) => `${k}: ${v}`).join("\n"));
   const [preview, setPreview] = useState<string | null>(product.img);
@@ -130,7 +137,8 @@ function ProductEditor({ product, isNew, existing, onClose, onSaved }:
       details: details.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => { const i = l.indexOf(":"); return i > 0 ? [l.slice(0, i).trim(), l.slice(i + 1).trim()] as [string, string] : ["Note", l] as [string, string]; }),
       tag: p.tag || name.replace(/^organic\s+/i, "").split(/\s+/)[0]!.toUpperCase().slice(0, 10),
       sort: isNew ? Math.max(0, ...existing.map((x) => x.sort)) + 10 : p.sort,
-      color: isNew ? STORE_CATS.find((c) => c.id === p.cat)?.color ?? p.color : p.color,
+      color: isNew ? cats.find((c) => c.id === p.cat)?.color ?? p.color : p.color,
+      sub: p.sub && subsOf(cats, p.cat).some((c) => c.id === p.sub) ? p.sub : null,
     };
     const oldPath = product.imgPath;
     let uploaded: string | null = null;
@@ -196,7 +204,14 @@ function ProductEditor({ product, isNew, existing, onClose, onSaved }:
               </div>
               <div className="row2">
                 <div className="field"><label htmlFor="edCat">Category</label>
-                  <select id="edCat" value={p.cat} onChange={(e) => set("cat", e.target.value)}>{STORE_CATS.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+                  <select id="edCat" value={p.cat} onChange={(e) => setP((x) => ({ ...x, cat: e.target.value, sub: null }))}>{mainCats(cats).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+                <div className="field"><label htmlFor="edSub">Sub-category</label>
+                  <select id="edSub" value={p.sub ?? ""} onChange={(e) => set("sub", e.target.value || null)}>
+                    <option value="">{subsOf(cats, p.cat).length ? "— none —" : "No sub-categories yet"}</option>
+                    {subsOf(cats, p.cat).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select></div>
+              </div>
+              <div className="row2">
                 <div className="field"><label htmlFor="edStock">Stock (units)</label>
                   <input id="edStock" type="number" min={0} step={1} value={p.stock ?? ""} placeholder="Empty = not tracked" onChange={(e) => set("stock", e.target.value === "" ? null : Math.max(0, Math.round(+e.target.value)))} /></div>
               </div>

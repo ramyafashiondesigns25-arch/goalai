@@ -3,6 +3,8 @@ export type PackType = "pouch" | "bag" | "bottle" | "jar" | "box" | "tube" | "ba
 export interface Product {
   id: string;
   cat: string;
+  /** Sub-category id (e.g. "badam" under "nuts"), or null when the product only has a main category. */
+  sub: string | null;
   name: string;
   ta: string;
   size: string;
@@ -29,6 +31,8 @@ export interface StoreSettings {
   freeAbove: number;
   deliveryFee: number;
   whatsapp: string;
+  upiId: string;
+  upiName: string;
 }
 
 export interface ServiceProject {
@@ -64,7 +68,7 @@ export interface ProductRow {
   id: string; cat: string; name: string; ta: string; size: string; price: number; mrp: number;
   stock: number | null; description: string; details: unknown; cert: string; is_new: boolean;
   image_url: string | null; image_path: string | null; pack_type: string; tag: string; color: string;
-  sort: number; active: boolean;
+  sort: number; active: boolean; sub?: string | null;
 }
 
 export const ORDER_STATUSES = ["NEW", "CONFIRMED", "PACKED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED"] as const;
@@ -78,8 +82,20 @@ export const STATUS_LABEL: Record<OrderStatus, string> = {
   CANCELLED: "Cancelled",
 };
 
+/* ---------- coupons ---------- */
+export type CouponKind = "PERCENT" | "FLAT";
+export interface Coupon {
+  code: string; description: string; kind: CouponKind; value: number; min_order: number;
+  max_discount: number | null; usage_limit: number | null; per_user_limit: number; first_order_only: boolean;
+  valid_from: string | null; valid_until: string | null; active: boolean; created_at: string;
+}
+/** What validate_coupon() returns to the checkout page. */
+export type CouponCheck =
+  | { ok: true; code: string; discount: number; message: string }
+  | { ok: false; message: string };
+
 /* ---------- payments ---------- */
-export const PAYMENT_METHOD_LABEL: Record<string, string> = { COD: "Cash on delivery", UPI_ON_DELIVERY: "UPI on delivery", ONLINE: "Paid online" };
+export const PAYMENT_METHOD_LABEL: Record<string, string> = { WHATSAPP: "Pay on WhatsApp chat", COD: "Cash on delivery", UPI_ON_DELIVERY: "UPI on delivery", ONLINE: "Paid online" };
 export const PAID_VIA_LABEL: Record<string, string> = { CASH: "Cash", UPI: "UPI" };
 
 /* ---------- service work ---------- */

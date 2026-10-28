@@ -12,6 +12,8 @@
     "./lib/pack": "./src/lib/pack.ts",
     "./lib/mappers": "./src/lib/mappers.ts",
     "./lib/catalog": "./src/lib/catalog.ts",
+    "./lib/opportunities": "./src/lib/opportunities.ts",
+    "./lib/share": "./src/lib/share.ts",
     "./lib/site": "./src/lib/site.ts",
     "./lib/env": "./src/lib/env.ts",
     "./lib/supabase/public": "./src/lib/supabase/public.ts",

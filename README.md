@@ -18,12 +18,22 @@ own address — nothing about it is visible or linked from the customer site.
 - Login is required to **place an order** or **send a service request**; the basket is kept while they log in.
 - **My account**: their orders with live status, their service requests with status (Received → In progress → Completed),
   and saved name / mobile / address that pre-fill checkout.
+- **Shelves**: main categories and sub-categories made by the Founder (Nuts → Badam, Pista, Cashew; Healthy home-made food → Laddus …). The shop shows the main shelves with the sub-categories under each.
+- **Share**: every product has a Share menu — WhatsApp, Facebook, Instagram (copies the link and opens the app), Telegram, X, email, copy link, and the phone's own share sheet.
+- **Payment on WhatsApp**: no gateway. After ordering, "Pay on WhatsApp" opens a chat with the order filled in; the shop replies with UPI details and marks the order paid in admin.
+- **Opportunities** (`/opportunities`): categories the Founder creates (Jobs, Training, …) with attractive listings showing salary, training and highlights.
+  The employer and contact stay locked: the customer registers by paying a UPI fee, the Founder verifies the UTR, the details unlock and the customer sends an application.
+- **Coupons**: enter a code at checkout; the discount is previewed live and priced again inside Postgres when the order is placed.
+- **Cancel an order** (My account): allowed while the order is Received/Confirmed and unpaid; stock goes back and the CRM lead becomes Lost.
+- **Buy again**: one tap puts an earlier order's items back in the basket at today's prices and stock.
+- **Saved items**: a heart on every product card and product page; the list lives in My account.
 - Orders and requests are filed in the CRM as customer + lead (referral links `?ref=CODE` assign the lead to that agent).
 
 ## Admin (apps/admin)
 
 Founder sign-in (GOALAI email + password). Overview, Orders (status → CRM lead Won/Lost, restock on cancel),
-Products (photo upload, MRP / price, stock, hide/show), **Customers** (accounts, orders, spend), Website leads, Settings.
+Products (photo upload, MRP / price, stock, hide/show), **Customers** (accounts, orders, spend), **Categories** (shelves and sub-categories), **Opportunities** (categories + openings, with a private employer block), **Applications** (verify UPI payments, shortlist / select), **Coupons** (create, schedule,
+limit, switch off; see uses and ₹ given), Website leads, Settings.
 Every save refreshes the store immediately via a secret-protected `/api/revalidate` call.
 
 ## One-time Supabase setup (Dashboard → Authentication) — required for customer login
@@ -69,7 +79,8 @@ npm run typecheck && npm test && npm run build
 ## Database & security
 
 Migrations in `supabase/migrations/` (all applied):
-`store_catalogue` · `store_orders` · `web_rpcs` · `customer_accounts` · `login_required`.
+`store_catalogue` · `store_orders` · `web_rpcs` · `customer_accounts` · `login_required` · `payments_and_work_updates` · `lock_down_rpc` · `ecom_feature_pack` · `opportunities` · `store_categories_whatsapp_pay`
+(coupons, `validate_coupon()`, `cancel_my_order()`, wishlist; `place_order()` and `track_order()` replaced to carry the discount).
 
 - Customers are auth users marked `account_type = customer`; they get a `store_customers` row and **no CRM profile**, so CRM
   data (leads, customers, earnings) stays invisible to them. Staff sign-ups work exactly as before.
@@ -83,3 +94,8 @@ Migrations in `supabase/migrations/` (all applied):
 - [ ] Real products, photos, prices; organic certificate numbers; comparison % you have verified.
 - [ ] Review privacy & terms pages.
 - [ ] Place a test order with a real email, then mark it Delivered in admin and check the CRM lead turns Won.
+- [ ] Apply `20261027090000_ecom_feature_pack.sql` (Supabase SQL editor), then create a test coupon in admin → Coupons and use it on a test order.
+- [ ] Apply `20261028090000_opportunities.sql`, set your UPI ID in admin → Settings, create a category + opening, register with a small test fee and verify it in Applications.
+- [ ] Apply `20261029090000_store_categories_whatsapp_pay.sql`, open admin → Categories, add a main category and a sub-category, assign a product to them and check the shop filter.
+- [ ] Place a test order and tap Pay on WhatsApp; mark it paid in admin → Orders.
+- [ ] Cancel a test order from My account and check the stock came back and the CRM lead is Lost.

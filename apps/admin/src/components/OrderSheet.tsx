@@ -13,7 +13,7 @@ interface Item { name: string; size: string; qty: number; price: number; mrp: nu
 interface Order {
   id: string; code: string; customer_name: string; phone: string; email: string | null; fulfilment: string;
   address: string | null; pincode: string | null; notes: string | null; items_total: number; mrp_total: number;
-  delivery_fee: number; total: number; payment_method: string; payment_status: string; paid_via: string | null;
+  discount: number; coupon_code: string | null; delivery_fee: number; total: number; payment_method: string; payment_status: string; paid_via: string | null;
   paid_at: string | null; payment_ref: string | null; admin_note: string | null; status: OrderStatus;
   ref_code: string | null; created_at: string; updated_at: string; customer_user_id: string | null;
   store_order_items: Item[];
@@ -90,6 +90,7 @@ export function OrderSheet({ id }: { id: string }) {
           </tbody>
           <tfoot>
             <tr><td colSpan={5} className="num">Items</td><td className="num">{rupee(o.items_total)}</td></tr>
+            {o.discount > 0 && <tr><td colSpan={5} className="num">Coupon{o.coupon_code ? ` ${o.coupon_code}` : ""}</td><td className="num">− {rupee(o.discount)}</td></tr>}
             <tr><td colSpan={5} className="num">Delivery</td><td className="num">{o.delivery_fee ? rupee(o.delivery_fee) : "Free"}</td></tr>
             <tr><td colSpan={5} className="num" style={{ fontSize: "1.05rem" }}>Total</td><td className="num" style={{ fontSize: "1.05rem" }}>{rupee(o.total)}</td></tr>
             {savings > 0 && <tr><td colSpan={6} className="num" style={{ color: "#1C5E36", fontWeight: 700 }}>You saved {rupee(savings)} on MRP</td></tr>}

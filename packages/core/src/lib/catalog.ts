@@ -1,4 +1,4 @@
-export interface StoreCategory { id: string; name: string; ta: string; color: string }
+export interface StoreCategory { id: string; name: string; ta: string; color: string; parent_id?: string | null; sort?: number; active?: boolean }
 
 /** Store shelves. Product rows reference these ids in `store_products.cat`. */
 export const STORE_CATS: StoreCategory[] = [
@@ -10,7 +10,16 @@ export const STORE_CATS: StoreCategory[] = [
   { id: "drinks", name: "Coffee, tea & honey", ta: "காபி, டீ, தேன்", color: "#5A3825" },
 ];
 
-export const catName = (id: string) => STORE_CATS.find((c) => c.id === id)?.name ?? id;
+/** Name of a category or sub-category. Pass the live list from the database; defaults to the built-in shelves. */
+export const catName = (id: string | null | undefined, cats: StoreCategory[] = STORE_CATS) => (id ? cats.find((c) => c.id === id)?.name ?? id : "");
+
+/** Main categories (no parent), in shelf order. */
+export const mainCats = (cats: StoreCategory[]) => cats.filter((c) => !c.parent_id).sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0) || a.name.localeCompare(b.name));
+/** Sub-categories of one main category, in shelf order. */
+export const subsOf = (cats: StoreCategory[], mainId: string) => cats.filter((c) => c.parent_id === mainId).sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0) || a.name.localeCompare(b.name));
+/** Does a product belong to the chosen main category / sub-category? (`all` = no filter) */
+export const inShelf = (p: { cat: string; sub: string | null }, cat: string, sub: string | null) =>
+  (cat === "all" || p.cat === cat) && (!sub || p.sub === sub);
 
 export interface Kit { id: string; name: string; note: string; items: [string, number][] }
 

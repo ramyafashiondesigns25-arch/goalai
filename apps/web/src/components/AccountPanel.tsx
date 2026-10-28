@@ -2,16 +2,23 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { browserClient } from "@goalai/core/lib/supabase/browser";
-import { rupee } from "@goalai/core/lib/pricing";
-import { PAID_VIA_LABEL, STATUS_LABEL, type OrderStatus } from "@goalai/core/lib/types";
+import { DEFAULT_SETTINGS, rupee } from "@goalai/core/lib/pricing";
+import { whatsappLink, whatsappPayMessage } from "@goalai/core/lib/share";
+import { fromRow } from "@goalai/core/lib/mappers";
+import { APPLICATION_LABEL, type MyApplication } from "@goalai/core/lib/opportunities";
+import { PAID_VIA_LABEL, STATUS_LABEL, type OrderStatus, type Product, type ProductRow } from "@goalai/core/lib/types";
+import { cancelOrder } from "@/app/actions";
 import { useAuth } from "./AuthProvider";
+import { useCart } from "./CartProvider";
+import { useWish } from "./WishProvider";
+import { BuyButton } from "./BuyButton";
 
 interface MyOrder {
-  id: string; code: string; status: OrderStatus; total: number; delivery_fee: number; fulfilment: string; created_at: string;
+  id: string; code: string; status: OrderStatus; total: number; discount: number; coupon_code: string | null; delivery_fee: number; fulfilment: string; created_at: string;
   payment_method: string; payment_status: string; paid_via: string | null;
-  store_order_items: { name: string; size: string; qty: number; line_total: number }[];
+  store_order_items: { product_id: string | null; name: string; size: string; qty: number; line_total: number }[];
 }
 interface MyRequest { id: number; service: string; project: string | null; message: string | null; created_at: string; updated_at: string; ref: string | null; status: string; stage: string; progress: number; updates: unknown[] }
 
@@ -24,16 +31,74 @@ export function AccountPanel() {
   const [requests, setRequests] = useState<MyRequest[] | null>(null);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [orderMsg, setOrderMsg] = useState<{ code: string; ok: boolean; text: string } | null>(null);
+  const [acting, setActing] = useState<string | null>(null);
+  const [saved, setSaved] = useState<Product[] | null>(null);
+  const [apps, setApps] = useState<MyApplication[] | null>(null);
+  const [wa, setWa] = useState<string>(DEFAULT_SETTINGS.whatsapp);
+  const { add, setOpen, toast } = useCart();
+  const wish = useWish();
 
   useEffect(() => { if (ready && !user) router.replace("/login?next=/account"); }, [ready, user, router]);
+  const loadOrders = useCallback(async () => {
+    if (!user) return;
+    const { data } = await browserClient().from("store_orders")
+      .select("id,code,status,total,discount,coupon_code,delivery_fee,fulfilment,created_at,payment_method,payment_status,paid_via,store_order_items(product_id,name,size,qty,line_total)")
+      .eq("customer_user_id", user.id).order("created_at", { ascending: false }).limit(50);
+    setOrders((data ?? []) as MyOrder[]);
+  }, [user]);
   useEffect(() => {
     if (!user) return;
-    const sb = browserClient();
-    sb.from("store_orders").select("id,code,status,total,delivery_fee,fulfilment,created_at,payment_method,payment_status,paid_via,store_order_items(name,size,qty,line_total)")
-      .eq("customer_user_id", user.id).order("created_at", { ascending: false }).limit(50)
-      .then(({ data }) => setOrders((data ?? []) as MyOrder[]));
-    sb.rpc("my_service_requests").then(({ data }) => setRequests((data ?? []) as MyRequest[]));
-  }, [user]);
+    loadOrders();
+    browserClient().rpc("my_service_requests").then(({ data }) => setRequests((data ?? []) as MyRequest[]));
+    browserClient().from("store_settings").select("whatsapp").eq("id", 1).maybeSingle().then(({ data }) => { if (data?.whatsapp) setWa(String(data.whatsapp)); });
+    browserClient().rpc("my_applications").then(({ data }) => setApps((data ?? []) as MyApplication[]));
+  }, [user, loadOrders]);
+
+  // saved items: refetch the products whenever the list changes
+  const wishKey = wish.ids.join(",");
+  useEffect(() => {
+    if (!user) return;
+    if (!wishKey) { setSaved([]); return; }
+    let alive = true;
+    browserClient().from("store_products").select("*").in("id", wishKey.split(",")).eq("active", true)
+      .then(({ data }) => {
+        if (!alive) return;
+        const byId = new Map((data as ProductRow[] | null ?? []).map((r) => [r.id, fromRow(r)]));
+        setSaved(wishKey.split(",").map((id) => byId.get(id)).filter((p): p is Product => !!p));
+      });
+    return () => { alive = false; };
+  }, [user, wishKey]);
+
+  /** Put an earlier order's items back in the basket at today's prices and stock. */
+  const buyAgain = async (o: MyOrder) => {
+    const wanted = o.store_order_items.filter((i) => i.product_id);
+    if (!wanted.length) return setOrderMsg({ code: o.code, ok: false, text: "These items are no longer in the store." });
+    setActing(o.code); setOrderMsg(null);
+    const { data } = await browserClient().from("store_products").select("*").in("id", wanted.map((i) => i.product_id as string)).eq("active", true);
+    setActing(null);
+    const byId = new Map((data as ProductRow[] | null ?? []).map((r) => [r.id, fromRow(r)]));
+    let added = 0; let skipped = 0;
+    for (const i of wanted) {
+      const p = byId.get(i.product_id as string);
+      if (!p || p.stock === 0) { skipped += 1; continue; }
+      add(p, i.qty); added += 1;
+    }
+    if (!added) return setOrderMsg({ code: o.code, ok: false, text: "These items are out of stock or no longer sold right now." });
+    setOrderMsg({ code: o.code, ok: true, text: skipped ? `${added} item${added === 1 ? "" : "s"} added. ${skipped} could not be added (out of stock).` : `${added} item${added === 1 ? "" : "s"} added to your basket.` });
+    setOpen(true);
+  };
+
+  const cancel = async (o: MyOrder) => {
+    if (!confirm(`Cancel order ${o.code}? This cannot be undone.`)) return;
+    setActing(o.code); setOrderMsg(null);
+    const res = await cancelOrder(o.code);
+    setActing(null);
+    if (!res.ok) return setOrderMsg({ code: o.code, ok: false, text: res.error });
+    setOrderMsg({ code: o.code, ok: true, text: "Order cancelled." });
+    toast(`Order ${o.code} cancelled`);
+    loadOrders();
+  };
 
   if (!ready || !user) return <div className="empty"><b>Loading your account…</b></div>;
 
@@ -84,10 +149,51 @@ export function AccountPanel() {
                 </summary>
                 <ol>
                   {o.store_order_items.map((i, k) => <li key={k}><span>{i.name} · {i.size} × {i.qty}</span><span>{rupee(i.line_total)}</span></li>)}
+                  {o.discount > 0 && <li><span>Coupon{o.coupon_code ? ` ${o.coupon_code}` : ""}</span><span>− {rupee(o.discount)}</span></li>}
                   <li><span>{o.fulfilment === "PICKUP" ? "Pick up at shop" : "Delivery"}</span><span>{o.delivery_fee ? rupee(o.delivery_fee) : "Free"}</span></li>
-                  <li><span>Payment</span><span>{o.payment_status === "PAID" ? `Paid · ${PAID_VIA_LABEL[o.paid_via ?? ""] ?? ""}` : o.status === "CANCELLED" ? "—" : `${o.payment_method === "COD" ? "Cash" : "UPI"} on delivery`}</span></li>
+                  <li><span>Payment</span><span>{o.payment_status === "PAID" ? `Paid · ${PAID_VIA_LABEL[o.paid_via ?? ""] ?? ""}` : o.status === "CANCELLED" ? "—" : (o.payment_method === "COD" ? "Cash on delivery" : o.payment_method === "UPI_ON_DELIVERY" ? "UPI on delivery" : "Pay on WhatsApp")}</span></li>
                 </ol>
+                <div className="ordacts">
+                  <button className="btn btn--white btn--sm" type="button" disabled={acting === o.code} onClick={() => buyAgain(o)}>Buy again</button>
+                  {o.status !== "CANCELLED" && o.payment_status !== "PAID" && (
+                    <a className="btn btn--wa btn--sm" target="_blank" rel="noopener" href={whatsappLink(wa, whatsappPayMessage({
+                      code: o.code, total: o.total, discount: o.discount, delivery_fee: o.delivery_fee, fulfilment: o.fulfilment,
+                      items: o.store_order_items.map((i) => ({ name: i.name, size: i.size, qty: i.qty, line: i.line_total })),
+                    }))}>Pay on WhatsApp</a>
+                  )}
+                  <Link className="btn btn--white btn--sm" href={`/order/${o.code}`}>Track</Link>
+                  {(o.status === "NEW" || o.status === "CONFIRMED") && o.payment_status !== "PAID" && (
+                    <button className="btn btn--white btn--sm" type="button" disabled={acting === o.code} onClick={() => cancel(o)}>Cancel order</button>
+                  )}
+                </div>
+                {orderMsg?.code === o.code && <p className={orderMsg.ok ? "muted" : "form-err"} role="status" style={{ marginBottom: 0 }}>{orderMsg.text}</p>}
               </details>
+            ))}
+          </div>
+          <div className="form-card">
+            <h2>My applications</h2>
+            {apps === null ? <p className="muted">Loading…</p> : apps.length === 0 ? (
+              <p className="muted">You haven&apos;t applied to anything yet. <Link href="/opportunities">Browse jobs & training</Link></p>
+            ) : apps.map((a) => (
+              <div className="saved" key={a.id}>
+                <div>
+                  <Link className="saved__name" href={`/opportunity/${a.opportunity_id}`}>{a.icon} {a.title}</Link>
+                  <div className="saved__meta">{a.category}{a.location ? ` · ${a.location}` : ""} · {APPLICATION_LABEL[a.status]}</div>
+                  {a.admin_note && <div className="saved__meta"><b>Goalai:</b> {a.admin_note}</div>}
+                </div>
+                <span className={`pill ${a.status === "SELECTED" || a.status === "PAID" ? "pill--ok" : a.status === "PAYMENT_REJECTED" || a.status === "NOT_SELECTED" ? "pill--out" : "pill--warn"}`}>{a.status === "PAID" ? "Apply now" : a.status.replace("_", " ").toLowerCase()}</span>
+              </div>
+            ))}
+          </div>
+          <div className="form-card">
+            <h2>Saved items</h2>
+            {saved === null ? <p className="muted">Loading…</p> : saved.length === 0 ? (
+              <p className="muted">Tap the heart on any product to save it here. <Link href="/shop?cat=nuts">Browse the store</Link></p>
+            ) : saved.map((p) => (
+              <div className="saved" key={p.id}>
+                <div><Link className="saved__name" href={`/product/${p.id}`}>{p.name}</Link><div className="saved__meta">{p.size} · {rupee(p.price)}{p.mrp > p.price ? ` (MRP ${rupee(p.mrp)})` : ""}</div></div>
+                <div className="saved__acts"><BuyButton p={p} /><button className="linkbtn" type="button" onClick={() => wish.toggle(p.id, p.name)}>Remove</button></div>
+              </div>
             ))}
           </div>
           <div className="form-card">

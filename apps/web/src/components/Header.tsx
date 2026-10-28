@@ -11,6 +11,7 @@ const NAV = [
   { href: "/shop?cat=nuts", label: "Nuts & dry fruits", match: "nuts" },
   { href: "/shop", label: "Groceries", match: "/shop" },
   { href: "/services", label: "Services", match: "/services" },
+  { href: "/opportunities", label: "Opportunities", match: "/opportunit" },
   { href: "/track", label: "Track order", match: "/track" },
   { href: "/#contact", label: "Contact", match: "#contact" },
 ];
