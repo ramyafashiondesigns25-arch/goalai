@@ -674,3 +674,24 @@ footer .wrap { padding-right: 70px; }
 .subrail button { border: 1.5px solid var(--line-2); background: #fff; color: var(--ink); border-radius: 999px; padding: .42rem .85rem; font: 700 .84rem var(--body); cursor: pointer; }
 .subrail button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
 .subrail small { opacity: .7; margin-left: .25rem; }
+
+/* Shop: left category column on desktop, horizontal rail on mobile */
+.shopgrid { display: block; }
+.side { display: none; }
+@media (min-width: 900px) {
+  .shopgrid { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 1.8rem; align-items: start; }
+  .side { display: block; position: sticky; top: calc(var(--tb, 64px) + 14px); max-height: calc(100vh - var(--tb, 64px) - 28px); overflow-y: auto; background: var(--white); border: 1px solid var(--line); border-radius: var(--r-lg); padding: .8rem .6rem; box-shadow: var(--glow-sm); scrollbar-width: thin; }
+  .shopmain .rail, .shopmain .subrail { display: none; }
+}
+.side__h { font: 800 .72rem var(--body); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin: .2rem .7rem .6rem; }
+.side__row, .side__sub { display: flex; align-items: center; gap: .6rem; width: 100%; text-align: left; border: 0; background: transparent; color: var(--ink); font: 700 .92rem/1.25 var(--body); padding: .6rem .7rem; border-radius: var(--r-sm); cursor: pointer; }
+.side__row:hover, .side__sub:hover { background: var(--blush); }
+.side__row[aria-pressed="true"] { background: var(--pink); color: #fff; }
+.side__row[aria-pressed="true"] small { color: #FFE1EE; }
+.side__dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.side__n { flex: 1; min-width: 0; }
+.side__n em { display: block; font: 500 .72rem var(--tamil); font-style: normal; opacity: .75; }
+.side small { font-weight: 700; color: var(--muted); }
+.side__subs { margin: .1rem 0 .4rem 1.35rem; padding-left: .5rem; border-left: 2px solid var(--line-2); }
+.side__sub { font-weight: 600; font-size: .86rem; padding: .45rem .6rem; }
+.side__sub[aria-pressed="true"] { background: var(--blush-2); color: var(--pink-dk); }

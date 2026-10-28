@@ -36,6 +36,36 @@ export function Shelf({ products, settings, cats }: { products: Product[]; setti
           <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search cashew, rice, ghee, பாதாம்…" aria-label="Search products" />
         </label>
       </div>
+      <div className="shopgrid">
+      <nav className="side" aria-label="Categories">
+        <h2 className="side__h">Categories</h2>
+        <button type="button" className="side__row" aria-pressed={cat === "all"} onClick={() => pick("all")}>
+          <span className="side__dot" style={{ background: "var(--pink)" }} /><span className="side__n">All items</span><small>{products.length}</small>
+        </button>
+        {mains.map((c) => {
+          const open = cat === c.id;
+          const kids = subsOf(cats, c.id);
+          return (
+            <div key={c.id}>
+              <button type="button" className="side__row" aria-pressed={open && !sub} aria-expanded={kids.length ? open : undefined} onClick={() => pick(c.id)}>
+                <span className="side__dot" style={{ background: c.color }} />
+                <span className="side__n">{c.name}{c.ta ? <em>{c.ta}</em> : null}</span>
+                <small>{products.filter((p) => p.cat === c.id).length}</small>
+              </button>
+              {open && kids.length > 0 && (
+                <div className="side__subs">
+                  {kids.map((k) => (
+                    <button key={k.id} type="button" className="side__sub" aria-pressed={sub === k.id} onClick={() => pick(c.id, k.id)}>
+                      <span className="side__n">{k.name}{k.ta ? <em>{k.ta}</em> : null}</span><small>{products.filter((p) => p.sub === k.id).length}</small>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </nav>
+      <div className="shopmain">
       <div className="rail"><div className="rail__in" role="toolbar" aria-label="Product categories">
         {[{ id: "all", name: "All items" }, ...mains].map((c) => (
           <button key={c.id} type="button" aria-pressed={cat === c.id} onClick={() => pick(c.id)}>
@@ -55,7 +85,9 @@ export function Shelf({ products, settings, cats }: { products: Product[]; setti
       )}
       <div className="shelf">
         {list.length ? list.map((p) => <ProductCard key={p.id} p={p} s={settings} />)
-          : <div className="empty"><b>{products.length ? `Nothing matches “${q}”` : "Fresh stock is on its way"}</b>{products.length ? "Try another word, or pick All items." : "Please check back shortly."}</div>}
+          : <div className="empty"><b>{products.length ? (q.trim() ? `Nothing matches “${q}”` : "Nothing in this category yet") : "Fresh stock is on its way"}</b>{products.length ? "Try another word or category, or pick All items." : "Please check back shortly."}</div>}
+      </div>
+      </div>
       </div>
     </>
   );
