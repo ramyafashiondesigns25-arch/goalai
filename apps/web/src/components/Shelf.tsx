@@ -17,6 +17,7 @@ export function Shelf({ products, settings, cats }: { products: Product[]; setti
   const wantSub = params.get("sub");
   const sub = wantSub && subs.some((c) => c.id === wantSub) ? wantSub : null;
   const [q, setQ] = useState("");
+  const [drawer, setDrawer] = useState(false);
 
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -24,7 +25,9 @@ export function Shelf({ products, settings, cats }: { products: Product[]; setti
       (!needle || `${p.name} ${p.ta} ${p.tag} ${p.desc}`.toLowerCase().includes(needle)));
   }, [products, cat, sub, q]);
 
-  const pick = (id: string, subId?: string | null) => router.replace(id === "all" ? "/shop" : `/shop?cat=${id}${subId ? `&sub=${subId}` : ""}`, { scroll: false });
+  const pick = (id: string, subId?: string | null) => { setDrawer(false); router.replace(id === "all" ? "/shop" : `/shop?cat=${id}${subId ? `&sub=${subId}` : ""}`, { scroll: false }); };
+
+  const curName = cat === "all" ? "All items" : mains.find((c) => c.id === cat)?.name ?? "All items";
 
   return (
     <>
@@ -36,9 +39,13 @@ export function Shelf({ products, settings, cats }: { products: Product[]; setti
           <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search cashew, rice, ghee, பாதாம்…" aria-label="Search products" />
         </label>
       </div>
+      <button type="button" className="sidebtn" onClick={() => setDrawer(true)} aria-haspopup="dialog">
+        <span aria-hidden="true">☰</span> Categories <b>{curName}</b>
+      </button>
+      {drawer && <div className="side__back" onClick={() => setDrawer(false)} aria-hidden="true" />}
       <div className="shopgrid">
-      <nav className="side" aria-label="Categories">
-        <h2 className="side__h">Categories</h2>
+      <nav className={`side${drawer ? " side--open" : ""}`} aria-label="Categories">
+        <h2 className="side__h">Categories <button type="button" className="side__x" onClick={() => setDrawer(false)} aria-label="Close categories">✕</button></h2>
         <button type="button" className="side__row" aria-pressed={cat === "all"} onClick={() => pick("all")}>
           <span className="side__dot" style={{ background: "var(--pink)" }} /><span className="side__n">All items</span><small>{products.length}</small>
         </button>
