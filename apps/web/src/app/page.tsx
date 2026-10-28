@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getProducts, getServices, getSettings, getStoreCategories } from "@/lib/data";
 import { KITS, mainCats } from "@goalai/core/lib/catalog";
 import { SITE } from "@goalai/core/lib/site";
+import { HomeSide } from "@/components/HomeSide";
 import { HeroStage } from "@/components/HeroStage";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductVisual } from "@goalai/core/components/ProductVisual";
@@ -32,7 +33,9 @@ export default async function Home() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <section className="hero glow" aria-labelledby="heroTitle">
-        <div className="wrap hero__grid">
+        <div className="wrap homegrid">
+          <HomeSide cats={allCats} products={products} />
+          <div className="hero__grid">
           <div>
             <p className="hero__ta">இயற்கை முந்திரி, பாதாம், மளிகை — நியாய விலையில்</p>
             <h1 id="heroTitle">Only organic, <span>honestly priced.</span></h1>
@@ -48,6 +51,7 @@ export default async function Home() {
             </div>
           </div>
           <HeroStage products={hero} />
+          </div>
         </div>
       </section>
 
