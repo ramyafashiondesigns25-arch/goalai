@@ -32,7 +32,8 @@ export function HomeSide({ cats, products }: { cats: StoreCategory[]; products: 
               </li>
             );
           })}
-          <li className="hside__sep"><Link href="/opportunities" className="hside__row"><span className="side__n">Jobs &amp; Opportunities</span></Link></li>
+          <li className="hside__sep"><Link href="/academy" className="hside__row"><span className="side__n">GoalAI Academy · Learn AI</span></Link></li>
+          <li><Link href="/opportunities" className="hside__row"><span className="side__n">Jobs &amp; Opportunities</span></Link></li>
           <li><Link href="/services" className="hside__row"><span className="side__n">Services</span></Link></li>
         </ul>
       </nav>

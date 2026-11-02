@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getProducts, getServices, getSettings, getStoreCategories } from "@/lib/data";
 import { KITS, mainCats } from "@goalai/core/lib/catalog";
 import { SITE } from "@goalai/core/lib/site";
+import { ACADEMY } from "@/lib/academy";
 import { HomeSide } from "@/components/HomeSide";
 import { HeroStage } from "@/components/HeroStage";
 import { ProductCard } from "@/components/ProductCard";
@@ -78,6 +79,16 @@ export default async function Home() {
                 </Link>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      <section className="section" aria-labelledby="acadHome" style={{ paddingTop: 0 }}>
+        <div className="wrap">
+          <div className="acad-band">
+            <div><p className="eyebrow" style={{ color: "#FFE1EE" }}>{ACADEMY.name}</p><h2 id="acadHome">Learn AI. Earn with AI.</h2>
+              <p>{ACADEMY.motto}. A ₹{ACADEMY.seminar.fee} AI seminar and a {ACADEMY.course.months}-month all-round AI class. No degree needed.</p></div>
+            <Link className="btn btn--white" href="/academy">See the Academy</Link>
           </div>
         </div>
       </section>

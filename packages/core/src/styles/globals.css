@@ -735,3 +735,19 @@ footer .wrap { padding-right: 70px; }
   .hero__grid { grid-template-columns: minmax(0, 1fr) !important; }
 }
 @media (min-width: 1180px) { .homegrid .hero__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; } }
+
+/* GoalAI Academy */
+.acad-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.3rem; align-items: stretch; }
+.acad-card { display: flex; flex-direction: column; gap: .5rem; }
+.acad-card h3 { font-family: var(--display); font-size: 1.5rem; margin: 0; }
+.acad-card .btn { margin-top: auto; }
+.acad-card--main { border-color: var(--pink); box-shadow: var(--glow); }
+.acad-price { margin: 0; font-size: 1.1rem; color: var(--muted); }
+.acad-price b { font: 800 2.1rem/1 var(--body); color: var(--pink-tx); }
+.acad-price small { margin-left: .4rem; }
+.acad-list { margin: .6rem 0 1rem; padding-left: 1.2rem; display: grid; gap: .5rem; }
+.acad-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; }
+.acad-band { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.2rem 2rem; padding: clamp(1.4rem, 3vw, 2.2rem); border-radius: var(--r-xl); color: #fff; background: radial-gradient(120% 140% at 10% 0%, var(--pink-lt) 0%, var(--pink) 45%, var(--pink-dk) 100%); }
+.acad-band h2 { margin: 0; color: #fff; }
+.acad-band p { margin: .4rem 0 0; max-width: 56ch; }
+@media (max-width: 800px) { .acad-grid, .acad-two { grid-template-columns: 1fr; } }
