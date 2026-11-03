@@ -6,9 +6,9 @@ import { useCallback, useEffect, useState } from "react";
 import { browserClient } from "@goalai/core/lib/supabase/browser";
 import { DEFAULT_SETTINGS, rupee } from "@goalai/core/lib/pricing";
 import { whatsappLink, whatsappPayMessage } from "@goalai/core/lib/share";
-import { fromRow } from "@goalai/core/lib/mappers";
+import { attachVariants, fromRow } from "@goalai/core/lib/mappers";
 import { APPLICATION_LABEL, type MyApplication } from "@goalai/core/lib/opportunities";
-import { PAID_VIA_LABEL, STATUS_LABEL, type OrderStatus, type Product, type ProductRow } from "@goalai/core/lib/types";
+import { PAID_VIA_LABEL, STATUS_LABEL, type OrderStatus, type Product, type ProductRow, type VariantRow } from "@goalai/core/lib/types";
 import { cancelOrder } from "@/app/actions";
 import { useAuth } from "./AuthProvider";
 import { useCart } from "./CartProvider";
@@ -18,7 +18,7 @@ import { BuyButton } from "./BuyButton";
 interface MyOrder {
   id: string; code: string; status: OrderStatus; total: number; discount: number; coupon_code: string | null; delivery_fee: number; fulfilment: string; created_at: string;
   payment_method: string; payment_status: string; paid_via: string | null;
-  store_order_items: { product_id: string | null; name: string; size: string; qty: number; line_total: number }[];
+  store_order_items: { product_id: string | null; variant_id: string | null; name: string; size: string; qty: number; line_total: number }[];
 }
 interface MyRequest { id: number; service: string; project: string | null; message: string | null; created_at: string; updated_at: string; ref: string | null; status: string; stage: string; progress: number; updates: unknown[] }
 
@@ -43,7 +43,7 @@ export function AccountPanel() {
   const loadOrders = useCallback(async () => {
     if (!user) return;
     const { data } = await browserClient().from("store_orders")
-      .select("id,code,status,total,discount,coupon_code,delivery_fee,fulfilment,created_at,payment_method,payment_status,paid_via,store_order_items(product_id,name,size,qty,line_total)")
+      .select("id,code,status,total,discount,coupon_code,delivery_fee,fulfilment,created_at,payment_method,payment_status,paid_via,store_order_items(product_id,variant_id,name,size,qty,line_total)")
       .eq("customer_user_id", user.id).order("created_at", { ascending: false }).limit(50);
     setOrders((data ?? []) as MyOrder[]);
   }, [user]);
@@ -62,9 +62,10 @@ export function AccountPanel() {
     if (!wishKey) { setSaved([]); return; }
     let alive = true;
     browserClient().from("store_products").select("*").in("id", wishKey.split(",")).eq("active", true)
-      .then(({ data }) => {
+      .then(async ({ data }) => {
+        const { data: vs } = await browserClient().from("store_product_variants").select("*").in("product_id", wishKey.split(",")).eq("active", true).order("sort");
         if (!alive) return;
-        const byId = new Map((data as ProductRow[] | null ?? []).map((r) => [r.id, fromRow(r)]));
+        const byId = new Map(attachVariants((data as ProductRow[] | null ?? []).map(fromRow), (vs as VariantRow[] | null) ?? []).map((p) => [p.id, p]));
         setSaved(wishKey.split(",").map((id) => byId.get(id)).filter((p): p is Product => !!p));
       });
     return () => { alive = false; };
@@ -76,13 +77,16 @@ export function AccountPanel() {
     if (!wanted.length) return setOrderMsg({ code: o.code, ok: false, text: "These items are no longer in the store." });
     setActing(o.code); setOrderMsg(null);
     const { data } = await browserClient().from("store_products").select("*").in("id", wanted.map((i) => i.product_id as string)).eq("active", true);
+    const { data: vs } = await browserClient().from("store_product_variants").select("*").in("product_id", wanted.map((i) => i.product_id as string)).eq("active", true);
     setActing(null);
-    const byId = new Map((data as ProductRow[] | null ?? []).map((r) => [r.id, fromRow(r)]));
+    const byId = new Map(attachVariants((data as ProductRow[] | null ?? []).map(fromRow), (vs as VariantRow[] | null) ?? []).map((p) => [p.id, p]));
     let added = 0; let skipped = 0;
     for (const i of wanted) {
       const p = byId.get(i.product_id as string);
-      if (!p || p.stock === 0) { skipped += 1; continue; }
-      add(p, i.qty); added += 1;
+      if (!p) { skipped += 1; continue; }
+      const v = p.variants.length ? p.variants.find((x) => x.id === i.variant_id) ?? null : null;
+      if (p.variants.length ? !v || v.stock === 0 : p.stock === 0) { skipped += 1; continue; }
+      add(p, i.qty, v); added += 1;
     }
     if (!added) return setOrderMsg({ code: o.code, ok: false, text: "These items are out of stock or no longer sold right now." });
     setOrderMsg({ code: o.code, ok: true, text: skipped ? `${added} item${added === 1 ? "" : "s"} added. ${skipped} could not be added (out of stock).` : `${added} item${added === 1 ? "" : "s"} added to your basket.` });

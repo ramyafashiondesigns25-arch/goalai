@@ -15,7 +15,7 @@ const ref = z.string().trim().regex(/^[A-Za-z0-9_-]{2,30}$/).optional().nullable
 /** Database errors raised by our functions are written for customers; anything else gets a generic message. */
 function friendly(err: { message?: string } | null | undefined, fallback: string) {
   const m = err?.message ?? "";
-  const known = /^(Please|Coupon|This order|This opening|This UPI|Your payment|You have already|Several payments|Your basket|One of the items|Only \d+|Maximum|Several orders|We already have|Too many|Choose|Could not|.+ is out of stock\.)/;
+  const known = /^(Please|Coupon|This order|This opening|This UPI|Your payment|You have already|Several payments|Your basket|One of the items|Please choose|Only \d+|Maximum|Several orders|We already have|Too many|Choose|Could not|.+ is out of stock\.)/;
   return known.test(m) ? m : fallback;
 }
 
@@ -32,7 +32,7 @@ const OrderInput = z.object({
   coupon: z.string().trim().toUpperCase().regex(/^[A-Z0-9]{3,20}$/, "Coupon code not found.").optional().or(z.literal("")).transform((v) => v || undefined),
   ref,
   website: z.string().optional(), // honeypot
-  items: z.array(z.object({ id: z.string().regex(/^[a-z0-9-]{1,80}$/), qty: z.number().int().min(1).max(99) })).min(1, "Your basket is empty.").max(60),
+  items: z.array(z.object({ id: z.string().regex(/^[a-z0-9-]{1,80}$/), qty: z.number().int().min(1).max(99), variant: z.string().uuid().optional() })).min(1, "Your basket is empty.").max(60),
 });
 export type OrderInput = z.input<typeof OrderInput>;
 export interface OrderPlaced { code: string; total: number; items_total: number; discount: number; delivery_fee: number; item_count: number; whatsapp: string }

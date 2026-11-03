@@ -1,12 +1,16 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import type { Product } from "@goalai/core/lib/types";
+import type { Product, ProductVariant } from "@goalai/core/lib/types";
+import { variantLabel } from "@goalai/core/lib/mappers";
 
 /** What the basket keeps per line. Prices here are for display only —
  *  the server re-prices every order from the database at checkout. */
 export interface CartLine {
-  id: string; qty: number;
+  /** Unique basket key: product id, or `productId~variantId`. */
+  key: string;
+  /** Product id. */
+  id: string; vid: string | null; qty: number;
   name: string; size: string; price: number; mrp: number; stock: number | null;
   img: string | null; ta: string; tag: string; color: string; type: Product["type"];
 }
@@ -15,9 +19,9 @@ interface CartApi {
   lines: CartLine[];
   count: number;
   subtotal: number;
-  qtyOf: (id: string) => number;
-  add: (p: Product, n?: number) => void;
-  setQty: (id: string, qty: number) => void;
+  qtyOf: (id: string, vid?: string | null) => number;
+  add: (p: Product, n?: number, v?: ProductVariant | null) => void;
+  setQty: (key: string, qty: number) => void;
   clear: () => void;
   open: boolean;
   setOpen: (v: boolean) => void;
@@ -29,9 +33,13 @@ const CartCtx = createContext<CartApi | null>(null);
 const KEY = "goalai.cart.v1";
 const REF_KEY = "goalai.ref";
 
-const snapshot = (p: Product, qty: number): CartLine => ({
-  id: p.id, qty, name: p.name, size: p.size, price: p.price, mrp: p.mrp, stock: p.stock,
-  img: p.img, ta: p.ta, tag: p.tag, color: p.color, type: p.type,
+const keyOf = (id: string, vid?: string | null) => (vid ? `${id}~${vid}` : id);
+
+const snapshot = (p: Product, qty: number, v?: ProductVariant | null): CartLine => ({
+  key: keyOf(p.id, v?.id), id: p.id, vid: v?.id ?? null, qty, name: p.name,
+  size: v ? variantLabel(v) || p.size : p.size,
+  price: v ? v.price : p.price, mrp: v ? v.mrp : p.mrp, stock: v ? v.stock : p.stock,
+  img: v?.img || p.img, ta: p.ta, tag: p.tag, color: v?.colourHex || p.color, type: p.type,
 });
 
 function readJSON<T>(key: string, fallback: T): T {
@@ -54,7 +62,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // load basket + referral code once on the client
   useEffect(() => {
     const saved = readJSON<CartLine[]>(KEY, []);
-    if (Array.isArray(saved)) setLines(saved.filter((l) => l && typeof l.id === "string" && l.qty > 0));
+    if (Array.isArray(saved)) setLines(saved.filter((l) => l && typeof l.id === "string" && l.qty > 0).map((l) => ({ ...l, vid: l.vid ?? null, key: l.key ?? keyOf(l.id, l.vid) })));
     const fromUrl = new URLSearchParams(window.location.search).get("ref");
     const code = fromUrl && /^[A-Za-z0-9_-]{2,30}$/.test(fromUrl) ? fromUrl.toUpperCase() : readJSON<string | null>(REF_KEY, null);
     if (code) {
@@ -80,30 +88,33 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     toastTimer.current = setTimeout(() => setMsg(""), 1900);
   }, []);
 
-  const setQty = useCallback((id: string, qty: number) => {
-    const line = lines.find((l) => l.id === id);
+  const setQty = useCallback((key: string, qty: number) => {
+    const line = lines.find((l) => l.key === key);
     if (!line) return;
     const cap = line.stock != null ? Math.min(99, line.stock) : 99;
     if (qty > cap) toast(`Only ${cap} of ${line.name} in stock`);
     const q = Math.max(0, Math.min(cap, Math.round(qty)));
-    setLines((prev) => (q === 0 ? prev.filter((l) => l.id !== id) : prev.map((l) => (l.id === id ? { ...l, qty: q } : l))));
+    setLines((prev) => (q === 0 ? prev.filter((l) => l.key !== key) : prev.map((l) => (l.key === key ? { ...l, qty: q } : l))));
   }, [lines, toast]);
 
-  const add = useCallback((p: Product, n = 1) => {
-    if (p.stock === 0) { toast(`${p.name} is out of stock`); return; }
-    const cur = lines.find((l) => l.id === p.id)?.qty ?? 0;
-    const cap = p.stock != null ? Math.min(99, p.stock) : 99;
+  const add = useCallback((p: Product, n = 1, v: ProductVariant | null = null) => {
+    if (p.variants.length > 0 && !v) { toast(`Please choose an option for ${p.name}`); return; }
+    const stock = v ? v.stock : p.stock;
+    if (stock === 0) { toast(`${p.name} is out of stock`); return; }
+    const key = keyOf(p.id, v?.id);
+    const cur = lines.find((l) => l.key === key)?.qty ?? 0;
+    const cap = stock != null ? Math.min(99, stock) : 99;
     const q = Math.min(cap, cur + n);
     toast(cur + n > cap ? `Only ${cap} of ${p.name} in stock` : `${p.name} added`);
-    const next = snapshot(p, q);
-    setLines((prev) => (prev.some((l) => l.id === p.id) ? prev.map((l) => (l.id === p.id ? next : l)) : [...prev, next]));
+    const next = snapshot(p, q, v);
+    setLines((prev) => (prev.some((l) => l.key === key) ? prev.map((l) => (l.key === key ? next : l)) : [...prev, next]));
   }, [lines, toast]);
 
   const api = useMemo<CartApi>(() => ({
     lines,
     count: lines.reduce((s, l) => s + l.qty, 0),
     subtotal: lines.reduce((s, l) => s + l.qty * l.price, 0),
-    qtyOf: (id) => lines.find((l) => l.id === id)?.qty ?? 0,
+    qtyOf: (id, vid) => lines.find((l) => l.key === keyOf(id, vid))?.qty ?? 0,
     add, setQty,
     clear: () => setLines([]),
     open, setOpen, toast, ref,

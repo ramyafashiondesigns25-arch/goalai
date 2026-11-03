@@ -80,7 +80,7 @@ export function CheckoutForm({ settings }: { settings: StoreSettings }) {
         name: String(f.get("name") ?? ""), phone: String(f.get("phone") ?? ""), email: user.email ?? "",
         fulfilment: mode, address: String(f.get("address") ?? ""), pincode: String(f.get("pincode") ?? ""),
         notes: ((gift ? "[Deepavali offer: free dry jamun sweet box + AI intro class seat] " : "") + String(f.get("notes") ?? "")).slice(0, 500), payment_method: pay, coupon: applied?.code, ref, website: String(f.get("website") ?? ""),
-        items: lines.map((l) => ({ id: l.id, qty: l.qty })),
+        items: lines.map((l) => ({ id: l.id, qty: l.qty, ...(l.vid ? { variant: l.vid } : {}) })),
       });
       if (!res.ok) { setErr(res.error); return; }
       try { sessionStorage.setItem("goalai.lastOrder", JSON.stringify({ code: res.data.code, phone: String(f.get("phone") ?? "") })); } catch { /* ignore */ }
@@ -122,14 +122,14 @@ export function CheckoutForm({ settings }: { settings: StoreSettings }) {
         <h2>Order summary</h2>
         <div className="checkout-lines">
           {lines.map((l) => (
-            <div className="line" key={l.id}>
+            <div className="line" key={l.key}>
               <ProductVisual p={l} className="thumb" variant="co" />
               <div><div className="line__name">{l.name}</div><div className="line__meta">{l.size} · {rupee(l.price)}</div></div>
               <div className="line__right"><b>{rupee(l.price * l.qty)}</b>
                 <span className="qty">
-                  <button type="button" aria-label={`Remove one ${l.name}`} onClick={() => setQty(l.id, l.qty - 1)}>−</button>
+                  <button type="button" aria-label={`Remove one ${l.name}`} onClick={() => setQty(l.key, l.qty - 1)}>−</button>
                   <span>{l.qty}</span>
-                  <button type="button" aria-label={`Add one ${l.name}`} onClick={() => setQty(l.id, l.qty + 1)}>+</button>
+                  <button type="button" aria-label={`Add one ${l.name}`} onClick={() => setQty(l.key, l.qty + 1)}>+</button>
                 </span>
               </div>
             </div>

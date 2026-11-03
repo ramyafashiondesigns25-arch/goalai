@@ -33,14 +33,14 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
           {lines.length === 0 ? (
             <div className="cart-empty"><b>Your basket is empty</b>Start with a handful of cashews or your monthly rice.</div>
           ) : lines.map((l) => (
-            <div className="line" key={l.id}>
+            <div className="line" key={l.key}>
               <ProductVisual p={l} className="thumb" variant="cart" />
               <div><div className="line__name">{l.name}</div><div className="line__meta">{l.size} · {rupee(l.price)}</div></div>
               <div className="line__right"><b>{rupee(l.price * l.qty)}</b>
                 <span className="qty">
-                  <button type="button" aria-label={`Remove one ${l.name}`} onClick={() => setQty(l.id, l.qty - 1)}>−</button>
+                  <button type="button" aria-label={`Remove one ${l.name}`} onClick={() => setQty(l.key, l.qty - 1)}>−</button>
                   <span>{l.qty}</span>
-                  <button type="button" aria-label={`Add one ${l.name}`} onClick={() => setQty(l.id, l.qty + 1)}>+</button>
+                  <button type="button" aria-label={`Add one ${l.name}`} onClick={() => setQty(l.key, l.qty + 1)}>+</button>
                 </span>
               </div>
             </div>

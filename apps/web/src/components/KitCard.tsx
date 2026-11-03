@@ -10,7 +10,7 @@ export function KitCard({ kit, items }: { kit: Kit; items: [Product, number][] }
   const { add, toast } = useCart();
   const total = items.reduce((s, [p, q]) => s + p.price * q, 0);
   const mrp = items.reduce((s, [p, q]) => s + p.mrp * q, 0);
-  const addAll = () => { items.forEach(([p, q]) => p.stock !== 0 && add(p, q)); toast(`${kit.name} added to your basket`); };
+  const addAll = () => { items.forEach(([p, q]) => p.stock !== 0 && p.variants.length === 0 && add(p, q)); toast(`${kit.name} added to your basket`); };
   return (
     <article className="kit lit">
       <div className="kit__fan">

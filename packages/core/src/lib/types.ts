@@ -1,5 +1,26 @@
 export type PackType = "pouch" | "bag" | "bottle" | "jar" | "box" | "tube" | "bar";
 
+export interface ProductVariant {
+  id: string;
+  productId: string;
+  label: string;
+  colourName: string;
+  colourHex: string | null;
+  price: number;
+  mrp: number;
+  stock: number | null;
+  img: string | null;
+  imgPath: string | null;
+  sort: number;
+  active: boolean;
+}
+
+export interface VariantRow {
+  id: string; product_id: string; label: string; colour_name: string; colour_hex: string | null;
+  price: number; mrp: number; stock: number | null; image_url: string | null; image_path: string | null;
+  sort: number; active: boolean;
+}
+
 export interface Product {
   id: string;
   cat: string;
@@ -22,6 +43,10 @@ export interface Product {
   color: string;
   sort: number;
   active: boolean;
+  /** Extra photos (public URLs) shown after the main photo. */
+  gallery: string[];
+  /** Pack sizes / colours. Empty = the product is bought as-is. */
+  variants: ProductVariant[];
 }
 
 export interface StoreSettings {
@@ -68,7 +93,7 @@ export interface ProductRow {
   id: string; cat: string; name: string; ta: string; size: string; price: number; mrp: number;
   stock: number | null; description: string; details: unknown; cert: string; is_new: boolean;
   image_url: string | null; image_path: string | null; pack_type: string; tag: string; color: string;
-  sort: number; active: boolean; sub?: string | null;
+  sort: number; active: boolean; sub?: string | null; gallery?: string[] | null;
 }
 
 export const ORDER_STATUSES = ["NEW", "CONFIRMED", "PACKED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED"] as const;

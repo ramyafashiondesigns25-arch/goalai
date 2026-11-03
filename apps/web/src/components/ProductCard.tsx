@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { comparePrices, offPct, rupee } from "@goalai/core/lib/pricing";
+import { priceRange } from "@goalai/core/lib/mappers";
 import type { Product, StoreSettings } from "@goalai/core/lib/types";
 import { ProductVisual } from "@goalai/core/components/ProductVisual";
 import { BuyButton } from "./BuyButton";
@@ -8,8 +9,9 @@ import { ShareButton } from "./ShareButton";
 import { SITE } from "@goalai/core/lib/site";
 
 export function ProductCard({ p, s }: { p: Product; s: StoreSettings }) {
-  const off = offPct(p);
-  const online = comparePrices(p, s)[1]!.price;
+  const pr = priceRange(p);
+  const off = offPct({ price: pr.min, mrp: pr.mrp });
+  const online = comparePrices({ ...p, price: pr.min, mrp: pr.mrp }, s)[1]!.price;
   return (
     <article className={`prod lit${p.stock === 0 ? " prod--oos" : ""}`}>
       <WishButton id={p.id} name={p.name} />
@@ -22,14 +24,14 @@ export function ProductCard({ p, s }: { p: Product; s: StoreSettings }) {
       </Link>
       <h3><Link href={`/product/${p.id}`}>{p.name}</Link></h3>
       <div className="ta">{p.ta}</div>
-      <div className="prod__size">{p.size}</div>
+      <div className="prod__size">{p.variants.length ? `${p.variants.length} options` : p.size}</div>
       <div className="prod__buy">
-        <span className="price"><b>{rupee(p.price)}</b>{p.mrp > p.price && <s>MRP {rupee(p.mrp)}</s>}</span>
+        <span className="price"><b>{pr.min < pr.max ? "from " : ""}{rupee(pr.min)}</b>{pr.mrp > pr.min && <s>MRP {rupee(pr.mrp)}</s>}</span>
         <span className="buy"><BuyButton p={p} /></span>
       </div>
       <div className="cmp">
-        {online > p.price
-          ? <span className="cmp__save">{rupee(online - p.price)} less than online marts</span>
+        {online > pr.min
+          ? <span className="cmp__save">{rupee(online - pr.min)} less than online marts</span>
           : <span className="cmp__save cmp__save--even">Fair price</span>}
         <Link className="cmp__btn" href={`/product/${p.id}`}>Details &amp; compare</Link>
       </div>

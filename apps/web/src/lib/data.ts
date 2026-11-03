@@ -1,10 +1,10 @@
 import "server-only";
 import { cache } from "react";
 import { publicClient } from "@goalai/core/lib/supabase/public";
-import { fromRow, settingsFromRow } from "@goalai/core/lib/mappers";
+import { attachVariants, fromRow, settingsFromRow } from "@goalai/core/lib/mappers";
 import { DEFAULT_SETTINGS } from "@goalai/core/lib/pricing";
 import { STORE_CATS, type StoreCategory } from "@goalai/core/lib/catalog";
-import type { Product, ProductRow, Service, StoreSettings } from "@goalai/core/lib/types";
+import type { Product, ProductRow, Service, StoreSettings, VariantRow } from "@goalai/core/lib/types";
 import type { OppCategory, Opportunity } from "@goalai/core/lib/opportunities";
 
 /* Public catalogue reads. Each fails soft (empty data + a server log) so a
@@ -14,7 +14,10 @@ export const getProducts = cache(async (): Promise<Product[]> => {
   try {
     const { data, error } = await publicClient().from("store_products").select("*").eq("active", true).order("sort").order("name");
     if (error) throw error;
-    return (data as ProductRow[]).map(fromRow);
+    const products = (data as ProductRow[]).map(fromRow);
+    const { data: vs, error: ve } = await publicClient().from("store_product_variants").select("*").eq("active", true).order("sort");
+    if (ve) console.error("[data] variants", ve);
+    return attachVariants(products, (vs as VariantRow[] | null) ?? []);
   } catch (e) {
     console.error("[data] products", e);
     return [];
@@ -26,7 +29,10 @@ export const getProduct = cache(async (id: string): Promise<Product | null> => {
   try {
     const { data, error } = await publicClient().from("store_products").select("*").eq("id", id).eq("active", true).maybeSingle();
     if (error) throw error;
-    return data ? fromRow(data as ProductRow) : null;
+    if (!data) return null;
+    const { data: vs, error: ve } = await publicClient().from("store_product_variants").select("*").eq("product_id", id).eq("active", true).order("sort");
+    if (ve) console.error("[data] variants", ve);
+    return attachVariants([fromRow(data as ProductRow)], (vs as VariantRow[] | null) ?? [])[0] ?? null;
   } catch (e) {
     console.error("[data] product", e);
     return null;
