@@ -9,5 +9,8 @@ export const SITE = {
   phoneHref: "tel:+916380150117",
   locality: "Kodungaiyur, Chennai",
   region: "Tamil Nadu",
-  postalCode: "600118",
+  street: "28/232, Solaiappan St, NN Garden",
+  area: "Washermanpet",
+  postalCode: "600021",
+  address: "28/232, Solaiappan St, NN Garden, Washermanpet, Chennai, Tamil Nadu 600021",
 } as const;

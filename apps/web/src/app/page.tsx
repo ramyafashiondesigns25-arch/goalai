@@ -27,7 +27,7 @@ export default async function Home() {
 
   const jsonLd = {
     "@context": "https://schema.org", "@type": "GroceryStore", name: "Goalai", url: SITE.url, telephone: SITE.phone, email: SITE.email,
-    address: { "@type": "PostalAddress", addressLocality: "Kodungaiyur, Chennai", addressRegion: SITE.region, postalCode: SITE.postalCode, addressCountry: "IN" },
+    address: { "@type": "PostalAddress", streetAddress: SITE.street, addressLocality: `${SITE.area}, Chennai`, addressRegion: SITE.region, postalCode: SITE.postalCode, addressCountry: "IN" },
     areaServed: { "@type": "City", name: "Chennai" }, paymentAccepted: "UPI, Cash", priceRange: "₹₹",
   };
 
@@ -159,7 +159,8 @@ export default async function Home() {
               <p>Organic groceries and dry fruits, plus property, construction and insurance services — one team that follows through.</p>
               <a className="big" href={SITE.phoneHref}>{SITE.phone}</a>
               <p style={{ margin: ".2rem 0 .6rem" }}>Email: <a href={`mailto:${SITE.email}`} style={{ color: "inherit", fontWeight: 700 }}>{SITE.email}</a></p>
-              <p>Shop in Kodungaiyur · Open daily · Delivery across Chennai</p>
+              <p>{SITE.address}</p>
+              <p>Open daily · Delivery across Chennai</p>
               <a className="btn btn--white" href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener">Chat on WhatsApp</a>
             </div>
           </div>

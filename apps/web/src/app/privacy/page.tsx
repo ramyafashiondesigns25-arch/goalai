@@ -25,7 +25,7 @@ export default function Privacy() {
       <h2>Your rights</h2>
       <p>You can ask to see, correct or delete your personal data, or withdraw consent for calls and messages, by calling or WhatsApping us at <a href={SITE.phoneHref}>{SITE.phone}</a>, or by emailing <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. We will respond within 30 days. If you are not satisfied, you may complain to the Data Protection Board of India.</p>
       <h2>Contact</h2>
-      <p>Goalai, {SITE.locality}, {SITE.region} — <a href={SITE.phoneHref}>{SITE.phone}</a> · <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+      <p>Goalai, {SITE.address} — <a href={SITE.phoneHref}>{SITE.phone}</a> · <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
     </div></section>
   );
 }

@@ -9,7 +9,7 @@ export function SheetHeader({ title, sub, right }: { title: string; sub?: string
         <div><h1>{title}</h1>{sub && <p className="muted" style={{ margin: 0 }}>{sub}</p>}</div>
       </div>
       <div style={{ textAlign: "right", fontSize: ".85rem", lineHeight: 1.5 }}>
-        <b>Goalai</b><br />Kodungaiyur, Chennai<br />WhatsApp +91 63801 50117
+        <b>Goalai</b><br />28/232, Solaiappan St, NN Garden,<br />Washermanpet, Chennai 600021<br />WhatsApp +91 63801 50117
         {right}
       </div>
     </div>
