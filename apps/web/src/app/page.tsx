@@ -120,7 +120,7 @@ export default async function Home() {
           <ol className="how">
             <li className="lit"><b>Fill your basket</b><span>Pick nuts, groceries or a ready kit here on the site.</span></li>
             <li className="lit"><b>We confirm your order</b><span>You get an order number straight away; we call or WhatsApp to confirm the time.</span></li>
-            <li className="lit"><b>Pick up or get it delivered</b><span>Collect at our Kodungaiyur counter, or pay cash / UPI at your door.</span></li>
+            <li className="lit"><b>Pick up or get it delivered</b><span>Collect at our shops in Kodungaiyur or Tondiarpet, or pay cash / UPI at your door.</span></li>
           </ol>
         </div>
       </section>
@@ -158,7 +158,7 @@ export default async function Home() {
               <h2 id="ctTitle">Goalai, serving all Chennai</h2>
               <p>Organic groceries and dry fruits, plus property, construction and insurance services — one team that follows through.</p>
               <a className="big" href={SITE.phoneHref}>{SITE.phone}</a>
-              <p>Open daily · Chennai</p>
+              <p>Shops in Kodungaiyur &amp; Tondiarpet · Open daily · Delivery across Chennai</p>
               <a className="btn btn--white" href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener">Chat on WhatsApp</a>
             </div>
           </div>
