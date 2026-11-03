@@ -9,7 +9,7 @@ const rupee = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 /** The front-page campaign: Deepavali sweet-box offer + GoalAI Academy. */
 export function DiwaliHero({ whatsapp }: { whatsapp: string }) {
   const live = isOfferActive();
-  const classWa = waLink(whatsapp, `Hi, I want to learn business ideas using AI at ${A.name}. Please share the seminar/class details and available seats.`);
+  const classWa = waLink(whatsapp, `Hi, I want a seat in the AI business introduction class at ${A.name} (how to start a future business using AI). Please share the details and available seats.`);
   return (
     <section className="dw" aria-labelledby="dwTitle">
       <div className="dw__sparks" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
@@ -17,10 +17,10 @@ export function DiwaliHero({ whatsapp }: { whatsapp: string }) {
         <div className="dw__copy">
           <p className="dw__badge"><span aria-hidden="true">🪔</span> {OFFER.name} · Limited time</p>
           <h1 id="dwTitle">
-            {live ? <>Shop {rupee(OFFER.threshold)}. <span>Get a FREE dry jamun box.</span></> : <>Fresh, organic &amp; <span>honestly priced.</span></>}
+            {live ? <>Shop {rupee(OFFER.threshold)}. <span>Get a FREE sweet box + AI business class.</span></> : <>Fresh, organic &amp; <span>honestly priced.</span></>}
           </h1>
           <p className="dw__lede">
-            {live ? "Fill your basket with organic nuts, dry fruits, millets and more. Cross " + rupee(OFFER.threshold) + " and a Deepavali " + OFFER.sweet + " sweet box is added to your order, on us." : "Organic nuts, dry fruits, millets and groceries, delivered from Kodungaiyur."}
+            {live ? "Fill your basket with organic nuts, dry fruits, millets and more. Cross " + rupee(OFFER.threshold) + " and you get a Deepavali " + OFFER.sweet + " sweet box, plus a free seat in our class on how to start a future business using AI." : "Organic nuts, dry fruits, millets and groceries, delivered from Kodungaiyur."}
           </p>
           {live && <OfferCountdown />}
           <div className="dw__cta">
@@ -31,7 +31,7 @@ export function DiwaliHero({ whatsapp }: { whatsapp: string }) {
         </div>
         <div className="dw__art" aria-hidden="false">
           <GiftBox className="dw__box" />
-          {live && <div className="dw__tag"><b>FREE</b><span>{OFFER.sweet} box on {rupee(OFFER.threshold)}+</span></div>}
+          {live && <div className="dw__tag"><b>2 FREE</b><span>sweet box + AI class on {rupee(OFFER.threshold)}+</span></div>}
         </div>
       </div>
 
@@ -40,10 +40,10 @@ export function DiwaliHero({ whatsapp }: { whatsapp: string }) {
           <div className="dw__ai-copy">
             <p className="dw__badge dw__badge--gold">GoalAI Academy · {OFFER.slotsLeft ? `Only ${OFFER.slotsLeft} seats left` : "Limited seats"}</p>
             <h2>Learn business ideas using AI. <span>A skill that keeps earning for you.</span></h2>
-            <p>{A.motto}. Start with a {rupee(A.seminar.fee)} AI seminar, or join the {A.course.months}-month AI class ({rupee(A.course.fee)}, launch offer). No degree needed. Seats are first come, first served.</p>
+            <p>{A.motto}. Order {rupee(OFFER.threshold)}+ and join the free introduction class: how to start a future business using AI. Want more? Take the {rupee(A.seminar.fee)} AI seminar or the {A.course.months}-month AI class ({rupee(A.course.fee)}). No degree needed. Seats are first come, first served.</p>
           </div>
           <div className="dw__ai-cta">
-            <a className="btn dw__btn" href={classWa} target="_blank" rel="noopener">Reserve my seat on WhatsApp</a>
+            <a className="btn dw__btn" href={classWa} target="_blank" rel="noopener">Claim my free class seat</a>
             <Link className="btn dw__btn dw__btn--ghost" href="/academy">See the AI class</Link>
           </div>
         </div>

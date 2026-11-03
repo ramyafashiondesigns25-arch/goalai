@@ -42,6 +42,12 @@ export default async function AcademyPage() {
       <section className="section" aria-labelledby="offTitle">
         <div className="wrap">
           <div className="head"><div><p className="eyebrow">Two ways to start</p><h2 id="offTitle">Start small, or go all in</h2></div></div>
+          <article className="card lit acad-card" style={{ marginBottom: "1.3rem" }}>
+            <p className="eyebrow">Free with your {OFFER.name} order</p>
+            <h3>{OFFER.introClass}</h3>
+            <p>Order {rupee(OFFER.threshold)} or more in our store and get a free seat. Learn the first steps to start a future business with AI. Seats are limited{OFFER.slotsLeft ? ` (only ${OFFER.slotsLeft} left)` : ""}; the date is shared on WhatsApp.</p>
+            <Link className="btn btn--pink" href="/shop">Shop {rupee(OFFER.threshold)} &amp; claim my seat</Link>
+          </article>
           <div className="acad-grid">
             <article className="card lit acad-card">
               <p className="eyebrow">Step 1</p>
