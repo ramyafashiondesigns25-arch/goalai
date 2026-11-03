@@ -79,7 +79,7 @@ export function CheckoutForm({ settings }: { settings: StoreSettings }) {
       const res = await placeOrder({
         name: String(f.get("name") ?? ""), phone: String(f.get("phone") ?? ""), email: user.email ?? "",
         fulfilment: mode, address: String(f.get("address") ?? ""), pincode: String(f.get("pincode") ?? ""),
-        notes: ((gift ? "[Deepavali offer: free sweet box] " : "") + String(f.get("notes") ?? "")).slice(0, 500), payment_method: pay, coupon: applied?.code, ref, website: String(f.get("website") ?? ""),
+        notes: ((gift ? "[Deepavali offer: free dry jamun sweet box] " : "") + String(f.get("notes") ?? "")).slice(0, 500), payment_method: pay, coupon: applied?.code, ref, website: String(f.get("website") ?? ""),
         items: lines.map((l) => ({ id: l.id, qty: l.qty })),
       });
       if (!res.ok) { setErr(res.error); return; }
@@ -151,7 +151,7 @@ export function CheckoutForm({ settings }: { settings: StoreSettings }) {
           )}
           {couponMsg && <p className={couponMsg.ok ? "coupon__ok" : "form-err"} role="status">{couponMsg.text}</p>}
         </div>
-        {offerOn && <div className={`giftbar${gift ? " giftbar--on" : ""}`}><span>{gift ? "🎁 Free Deepavali sweet box added to your order" : `🎁 Add ${rupee(OFFER.threshold - subtotal)} more to get a FREE sweet box`}</span></div>}
+        {offerOn && <div className={`giftbar${gift ? " giftbar--on" : ""}`}><span>{gift ? "🎁 Free Deepavali dry jamun box added to your order" : `🎁 Add ${rupee(OFFER.threshold - subtotal)} more to get a FREE dry jamun box`}</span></div>}
         <div className="sum" style={{ marginTop: ".6rem" }}><span>Items</span><span>{rupee(subtotal)}</span></div>
         {discount > 0 && <div className="sum sum--disc"><span>Coupon {applied?.code}</span><span>− {rupee(discount)}</span></div>}
         <div className="sum"><span>{mode === "PICKUP" ? "Pick up at shop" : "Delivery"}</span><span>{fee ? rupee(fee) : "Free"}</span></div>

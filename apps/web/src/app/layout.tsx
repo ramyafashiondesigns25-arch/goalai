@@ -38,7 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AuthProvider>
         <CartProvider>
         <WishProvider>
-          <div className="announce">{isOfferActive() ? `🪔 Deepavali offer: shop ₹${OFFER.threshold.toLocaleString("en-IN")}+ and get a FREE sweet box · ` : ""}100% organic · Free delivery above ₹{settings.freeAbove} · pay on WhatsApp chat</div>
+          <div className="announce">{isOfferActive() ? `🪔 Deepavali offer: shop ₹${OFFER.threshold.toLocaleString("en-IN")}+ and get a FREE dry jamun sweet box · ` : ""}100% organic · Free delivery above ₹{settings.freeAbove} · pay on WhatsApp chat</div>
           <Header />
           <main id="main">{children}</main>
           <Footer whatsapp={settings.whatsapp} />

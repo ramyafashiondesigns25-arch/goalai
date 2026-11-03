@@ -17,10 +17,10 @@ export function DiwaliHero({ whatsapp }: { whatsapp: string }) {
         <div className="dw__copy">
           <p className="dw__badge"><span aria-hidden="true">🪔</span> {OFFER.name} · Limited time</p>
           <h1 id="dwTitle">
-            {live ? <>Shop {rupee(OFFER.threshold)}. <span>Get a FREE sweet box.</span></> : <>Fresh, organic &amp; <span>honestly priced.</span></>}
+            {live ? <>Shop {rupee(OFFER.threshold)}. <span>Get a FREE dry jamun box.</span></> : <>Fresh, organic &amp; <span>honestly priced.</span></>}
           </h1>
           <p className="dw__lede">
-            {live ? "Fill your basket with organic nuts, dry fruits, millets and more. Cross " + rupee(OFFER.threshold) + " and a Deepavali sweet box is added to your order, on us." : "Organic nuts, dry fruits, millets and groceries, delivered from Kodungaiyur."}
+            {live ? "Fill your basket with organic nuts, dry fruits, millets and more. Cross " + rupee(OFFER.threshold) + " and a Deepavali " + OFFER.sweet + " sweet box is added to your order, on us." : "Organic nuts, dry fruits, millets and groceries, delivered from Kodungaiyur."}
           </p>
           {live && <OfferCountdown />}
           <div className="dw__cta">
@@ -31,7 +31,7 @@ export function DiwaliHero({ whatsapp }: { whatsapp: string }) {
         </div>
         <div className="dw__art" aria-hidden="false">
           <GiftBox className="dw__box" />
-          {live && <div className="dw__tag"><b>FREE</b><span>sweet box on {rupee(OFFER.threshold)}+</span></div>}
+          {live && <div className="dw__tag"><b>FREE</b><span>{OFFER.sweet} box on {rupee(OFFER.threshold)}+</span></div>}
         </div>
       </div>
 

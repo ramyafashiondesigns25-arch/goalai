@@ -51,7 +51,7 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
             <>
               {offerOn && (
                 <div className={`giftbar${giftLeft ? "" : " giftbar--on"}`}>
-                  <span>{giftLeft ? `🎁 Add ${rupee(giftLeft)} more to get a FREE sweet box` : "🎁 You unlocked a FREE Deepavali sweet box!"}</span>
+                  <span>{giftLeft ? `🎁 Add ${rupee(giftLeft)} more to get a FREE dry jamun box` : "🎁 You unlocked a FREE Deepavali dry jamun box!"}</span>
                   <div className="meter"><i style={{ width: `${Math.min(100, (subtotal / OFFER.threshold) * 100)}%` }} /></div>
                 </div>
               )}
