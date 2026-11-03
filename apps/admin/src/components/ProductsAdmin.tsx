@@ -19,6 +19,7 @@ const blank = (): Product => ({
 const pathFromUrl = (u: string) => { const m = u.split(`/object/public/${PHOTO_BUCKET}/`); return m.length === 2 ? decodeURIComponent(m[1]!.split("?")[0]!) : null; };
 const extOf = (b: Blob) => (b.type === "image/png" ? "png" : "jpg");
 const MAX_GALLERY = 8;
+const SIZE_PRESETS = ["XS", "S", "M", "L", "XL", "XXL", "Free size", "Kids 2-4", "Kids 5-8"];
 const COLOUR_PRESETS: [string, string][] = [["Red", "#D32F2F"], ["Pink", "#EC407A"], ["Orange", "#F57C00"], ["Yellow", "#FBC02D"], ["Green", "#388E3C"], ["Blue", "#1976D2"], ["Purple", "#7B1FA2"], ["Brown", "#6D4C41"], ["Black", "#212121"], ["White", "#FAFAFA"], ["Grey", "#9E9E9E"], ["Gold", "#C9A227"]];
 
 interface VDraft extends ProductVariant { blob?: Blob; preview?: string | null }
@@ -153,6 +154,10 @@ function ProductEditor({ product, isNew, existing, cats, onClose, onSaved }:
     id: crypto.randomUUID(), productId: p.id, label: "", colourName: "", colourHex: null, price: vs[vs.length - 1]?.price || p.price || 0,
     mrp: vs[vs.length - 1]?.mrp || p.mrp || 0, stock: 20, img: null, imgPath: null, sort: (vs.length + 1) * 10, active: true, preview: null,
   }]);
+  const addSize = (label: string) => setVars((vs) => [...vs, {
+    id: crypto.randomUUID(), productId: p.id, label, colourName: "", colourHex: null, price: vs[vs.length - 1]?.price || p.price || 0,
+    mrp: vs[vs.length - 1]?.mrp || p.mrp || 0, stock: 10, img: null, imgPath: null, sort: (vs.length + 1) * 10, active: true, preview: null,
+  }]);
   const takeVarImg = async (i: number, f?: File) => {
     if (!f) return;
     try { const r = await prepareImage(f); setVar(i, { blob: r.blob, preview: r.preview }); setErr(""); } catch (e) { setErr((e as Error).message); }
@@ -164,6 +169,7 @@ function ProductEditor({ product, isNew, existing, cats, onClose, onSaved }:
     if (!name || !size) return setErr("Name and pack size are required.");
     if (!(p.mrp > 0) || !(p.price > 0)) return setErr("Enter MRP and selling price in rupees.");
     if (p.price > p.mrp) return setErr("Selling price can't be higher than MRP.");
+    if (vars.length && p.cat !== "clothing") return setErr("Sizes & colours are for the Clothing category only. Remove them or change the category back to Clothing.");
     const seen = new Set<string>();
     for (const [i, v] of vars.entries()) {
       const nm = `Variant ${i + 1}`;
@@ -330,11 +336,15 @@ function ProductEditor({ product, isNew, existing, cats, onClose, onSaved }:
               <label className="ed__check"><input type="checkbox" checked={p.isNew} onChange={(e) => set("isNew", e.target.checked)} /> Show a NEW badge</label>
             </div>
           </div>
+          {p.cat === "clothing" || vars.length > 0 ? (
           <section className="ed__vars" aria-labelledby="edVarT">
-            <div className="ed__varhead"><h3 id="edVarT">Variants &amp; colours <small>optional</small></h3>
+            <div className="ed__varhead"><h3 id="edVarT">Sizes &amp; colours <small>Clothing only · optional</small></h3>
               <button className="btn btn--white btn--sm" type="button" onClick={addVar}>+ Add variant</button></div>
-            <p className="ed__hint">Use this when one product comes in different pack sizes or colours (e.g. 250 g / 500 g, or Red / Blue). Each variant has its own price, stock and photo.
-              Once you add variants, customers must choose one — the product&apos;s own price and stock above are then only used as the default for new variants.</p>
+            <div className="opt__row" style={{ margin: ".4rem 0" }}>
+              {SIZE_PRESETS.map((z) => <button key={z} type="button" className="chip" onClick={() => addSize(z)}>+ {z}</button>)}
+            </div>
+            <p className="ed__hint">Tap a size to add it, then set the colour, price and stock. (e.g. M · Red, L · Blue). Each variant has its own price, stock and photo.
+              Customers must choose a size/colour; the price and stock above are then only used as defaults.</p>
             {vars.map((v, i) => (
               <div className={`ed__var${v.active ? "" : " is-off"}`} key={v.id}>
                 <label className="ed__vimg" htmlFor={`edV${i}`} title="Photo for this variant">
@@ -344,7 +354,7 @@ function ProductEditor({ product, isNew, existing, cats, onClose, onSaved }:
                 </label>
                 <div className="ed__vf">
                   <div className="row2">
-                    <div className="field"><label htmlFor={`edVl${i}`}>Size / pack</label><input id={`edVl${i}`} value={v.label} maxLength={40} placeholder="500 g" onChange={(e) => setVar(i, { label: e.target.value })} /></div>
+                    <div className="field"><label htmlFor={`edVl${i}`}>Size / pack</label><input id={`edVl${i}`} value={v.label} maxLength={40} placeholder="M / L / XL / Free size" onChange={(e) => setVar(i, { label: e.target.value })} /></div>
                     <div className="field"><label htmlFor={`edVc${i}`}>Colour name</label>
                       <span className="ed__vcol">
                         <input id={`edVc${i}`} value={v.colourName} maxLength={40} placeholder="Red" list="edColours" onChange={(e) => {
@@ -370,6 +380,7 @@ function ProductEditor({ product, isNew, existing, cats, onClose, onSaved }:
             ))}
             <datalist id="edColours">{COLOUR_PRESETS.map(([n]) => <option key={n} value={n} />)}</datalist>
           </section>
+          ) : <p className="ed__hint">Sizes &amp; colours are available for the <b>Clothing</b> category only.</p>}
           <p className="ed__err" role="alert">{err}</p>
           <div className="ed__foot">
             {!isNew && <button className="btn btn--white" type="button" onClick={remove} disabled={busy}>Delete product</button>}
