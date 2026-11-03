@@ -15,10 +15,10 @@ export function OfferCountdown() {
   if (left === null) return <div className="dw-count" aria-hidden="true" style={{ visibility: "hidden" }}><div><b>00</b><small>days</small></div></div>;
   if (left <= 0) return <p className="dw-ended">This offer has ended. Watch this space for the next one!</p>;
   const s = Math.floor(left / 1000);
-  const parts: [string, string][] = [[pad(Math.floor(s / 86400)), "days"], [pad(Math.floor((s % 86400) / 3600)), "hours"], [pad(Math.floor((s % 3600) / 60)), "mins"], [pad(s % 60), "secs"]];
+  const parts: [string, string][] = [[pad(Math.floor(s / 86400)), "நாள்"], [pad(Math.floor((s % 86400) / 3600)), "மணி"], [pad(Math.floor((s % 3600) / 60)), "நிமிடம்"], [pad(s % 60), "விநாடி"]];
   return (
     <div className="dw-count" role="timer" aria-label="Time left for the Deepavali offer">
-      {parts.map(([v, l]) => <div key={l}><b>{v}</b><small>{l}</small></div>)}
+      {parts.map(([v, l]) => <div key={l}><b>{v}</b><small lang="ta">{l}</small></div>)}
     </div>
   );
 }

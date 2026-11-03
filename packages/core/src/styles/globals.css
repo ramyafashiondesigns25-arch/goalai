@@ -812,3 +812,11 @@ footer .wrap { padding-right: 70px; }
 .dw__ai .dw__ai-art { grid-row: 1 / span 2; }
 .dw__ai-cta { grid-column: 2; }
 @media (max-width: 860px) { .dw__ai { grid-template-columns: 1fr; } .dw__ai .dw__ai-art { grid-row: auto; } .dw__ai-cta { grid-column: 1; } }
+.dw .ta, .dw em[lang="ta"], .dw__ta, .dw-count small[lang="ta"] { font-family: var(--tamil); }
+.dw__ta { margin: 0 0 1rem; max-width: 56ch; font-size: clamp(1.05rem, 1.8vw, 1.3rem); font-weight: 600; line-height: 1.6; color: var(--gold); }
+.dw__badge .ta { letter-spacing: 0; text-transform: none; font-size: .9rem; }
+.dw__steps b em { display: block; font-style: normal; font-weight: 600; font-size: .9rem; color: #fff; margin-top: .1rem; }
+.dw__steps-head .dw__ta { margin: -.8rem 0 1.2rem; }
+.dw__terms .ta { display: inline-block; margin-top: .4rem; }
+.dw__fine .ta { display: inline-block; margin-top: .2rem; }
+.dw-count small[lang="ta"] { letter-spacing: 0; text-transform: none; font-size: .72rem; }
