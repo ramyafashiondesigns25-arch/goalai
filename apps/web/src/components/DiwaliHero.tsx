@@ -3,6 +3,7 @@ import { ACADEMY as A, waLink } from "@/lib/academy";
 import { OFFER, isOfferActive } from "@/lib/offer";
 import { OfferCountdown } from "./OfferCountdown";
 import { GiftBox } from "./GiftBox";
+import { AiArt, EarnArt, GiftArt, ShopArt } from "./AiArt";
 
 const rupee = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
@@ -36,7 +37,19 @@ export function DiwaliHero({ whatsapp }: { whatsapp: string }) {
       </div>
 
       <div className="wrap">
+        <div className="dw__steps-head"><p className="dw__badge">How it works</p><h2>Shop. Get gifts. Learn AI. Start earning.</h2></div>
+        <ol className="dw__steps">
+          <li><ShopArt className="dw__sart" /><b>1 · Shop {rupee(OFFER.threshold)}</b><span>Fill your basket with organic nuts, dry fruits and groceries.</span></li>
+          <li><GiftArt className="dw__sart" /><b>2 · Get 2 free gifts</b><span>A {OFFER.sweet} sweet box and a seat in the AI business class.</span></li>
+          <li><AiArt className="dw__sart" /><b>3 · Learn AI business</b><span>Join the introduction class: how to start a future business using AI.</span></li>
+          <li><EarnArt className="dw__sart" /><b>4 · Start earning</b><span>Use your new AI skill to build your own income. Go deeper with the 3-month class.</span></li>
+        </ol>
+        <p className="dw__fine">Income depends on your effort and the market. We do not guarantee earnings.</p>
+      </div>
+
+      <div className="wrap">
         <div className="dw__ai">
+          <AiArt className="dw__ai-art" />
           <div className="dw__ai-copy">
             <p className="dw__badge dw__badge--gold">GoalAI Academy · {OFFER.slotsLeft ? `Only ${OFFER.slotsLeft} seats left` : "Limited seats"}</p>
             <h2>Learn business ideas using AI. <span>A skill that keeps earning for you.</span></h2>

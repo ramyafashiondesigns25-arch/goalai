@@ -795,3 +795,20 @@ footer .wrap { padding-right: 70px; }
 .giftbar { margin: 0 0 .8rem; padding: .6rem .8rem; border-radius: var(--r-sm); background: #FFF4D6; border: 1px solid #F2C14E; color: #5C3A00; font: 700 .86rem/1.35 var(--body); }
 .giftbar--on { background: #E6F6EA; border-color: #6CBF84; color: #14532D; }
 .giftbar .meter { margin-top: .4rem; }
+
+/* Deepavali: how-it-works illustrations */
+.dw__steps-head { margin-top: clamp(1.8rem, 4vw, 3rem); }
+.dw__steps-head h2 { font-family: var(--display); font-weight: 600; font-size: clamp(1.6rem, 3.6vw, 2.6rem); line-height: 1.1; margin: 0 0 1.2rem; color: #fff; }
+.dw__steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; counter-reset: none; }
+.dw__steps li { position: relative; padding: 1rem 1rem 1.2rem; border-radius: var(--r-lg); background: rgba(255, 255, 255, .11); border: 1px solid rgba(255, 224, 138, .4); text-align: center; }
+.dw__steps li:not(:last-child)::after { content: "→"; position: absolute; right: -.95rem; top: 38%; z-index: 2; width: 1.5rem; height: 1.5rem; display: grid; place-items: center; border-radius: 50%; background: var(--gold); color: #4A0825; font-weight: 900; font-size: .9rem; }
+.dw__sart { width: 100%; max-width: 190px; height: auto; margin: 0 auto .4rem; display: block; }
+.dw__steps b { display: block; color: var(--gold); font-size: 1.05rem; margin-bottom: .25rem; }
+.dw__steps span { font-size: .88rem; color: #FFE1EE; }
+.dw__fine { margin: .8rem 0 0; font-size: .76rem; color: #FFC2DC; }
+.dw__ai-art { width: clamp(150px, 22vw, 240px); height: auto; flex: none; }
+@media (max-width: 860px) { .dw__steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dw__steps li:not(:last-child)::after { display: none; } .dw__ai-art { margin: 0 auto; } }
+.dw__ai { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: .8rem 2rem; }
+.dw__ai .dw__ai-art { grid-row: 1 / span 2; }
+.dw__ai-cta { grid-column: 2; }
+@media (max-width: 860px) { .dw__ai { grid-template-columns: 1fr; } .dw__ai .dw__ai-art { grid-row: auto; } .dw__ai-cta { grid-column: 1; } }
