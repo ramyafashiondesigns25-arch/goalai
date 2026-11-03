@@ -26,7 +26,7 @@ export default async function Home() {
     .filter((x) => x.items.length >= 3);
 
   const jsonLd = {
-    "@context": "https://schema.org", "@type": "GroceryStore", name: "Goalai", url: SITE.url, telephone: SITE.phone,
+    "@context": "https://schema.org", "@type": "GroceryStore", name: "Goalai", url: SITE.url, telephone: SITE.phone, email: SITE.email,
     address: { "@type": "PostalAddress", addressLocality: "Kodungaiyur, Chennai", addressRegion: SITE.region, postalCode: SITE.postalCode, addressCountry: "IN" },
     areaServed: { "@type": "City", name: "Chennai" }, paymentAccepted: "UPI, Cash", priceRange: "₹₹",
   };
@@ -120,7 +120,7 @@ export default async function Home() {
           <ol className="how">
             <li className="lit"><b>Fill your basket</b><span>Pick nuts, groceries or a ready kit here on the site.</span></li>
             <li className="lit"><b>We confirm your order</b><span>You get an order number straight away; we call or WhatsApp to confirm the time.</span></li>
-            <li className="lit"><b>Pick up or get it delivered</b><span>Collect at our shops in Kodungaiyur or Tondiarpet, or pay cash / UPI at your door.</span></li>
+            <li className="lit"><b>Pick up or get it delivered</b><span>Collect at our Kodungaiyur shop, or pay cash / UPI at your door.</span></li>
           </ol>
         </div>
       </section>
@@ -158,7 +158,8 @@ export default async function Home() {
               <h2 id="ctTitle">Goalai, serving all Chennai</h2>
               <p>Organic groceries and dry fruits, plus property, construction and insurance services — one team that follows through.</p>
               <a className="big" href={SITE.phoneHref}>{SITE.phone}</a>
-              <p>Shops in Kodungaiyur &amp; Tondiarpet · Open daily · Delivery across Chennai</p>
+              <p style={{ margin: ".2rem 0 .6rem" }}>Email: <a href={`mailto:${SITE.email}`} style={{ color: "inherit", fontWeight: 700 }}>{SITE.email}</a></p>
+              <p>Shop in Kodungaiyur · Open daily · Delivery across Chennai</p>
               <a className="btn btn--white" href={`https://wa.me/${settings.whatsapp}`} target="_blank" rel="noopener">Chat on WhatsApp</a>
             </div>
           </div>

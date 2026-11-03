@@ -9,7 +9,7 @@ export function Footer({ whatsapp }: { whatsapp: string }) {
         <div className="wrap">
           <span className="fbrand"><GoalaiMark id="gmk-f" /><span>© {new Date().getFullYear()} Goalai · {SITE.locality}</span></span>
           <span>
-            <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link> · <Link href="/track">Track order</Link> · <Link href="/account">My account</Link>
+            <a href={`mailto:${SITE.email}`}>{SITE.email}</a> · <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link> · <Link href="/track">Track order</Link> · <Link href="/account">My account</Link>
           </span>
         </div>
       </footer>

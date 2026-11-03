@@ -21,7 +21,7 @@ export default function Terms() {
       <h2>Services</h2>
       <p>Enquiries about property, construction, insurance or other services are requests for a call back. Prices, availability and terms for those services are confirmed in writing by our team before any payment.</p>
       <h2>Law</h2>
-      <p>These terms are governed by the laws of India, and courts in Chennai have jurisdiction. Questions: <a href={SITE.phoneHref}>{SITE.phone}</a>.</p>
+      <p>These terms are governed by the laws of India, and courts in Chennai have jurisdiction. Questions: <a href={SITE.phoneHref}>{SITE.phone}</a> or <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
     </div></section>
   );
 }

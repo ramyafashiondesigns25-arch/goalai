@@ -63,7 +63,7 @@ export function DiwaliHero({ whatsapp }: { whatsapp: string }) {
         <ul className="dw__trust">
           <li><b>100% organic</b><span>real photo, MRP &amp; fair price</span></li>
           <li><b>Pay on WhatsApp</b><span>no card, no gateway</span></li>
-          <li><b>Delivery across Chennai</b><span>all areas · shops in Kodungaiyur &amp; Tondiarpet</span></li>
+          <li><b>Delivery across Chennai</b><span>all areas · shop in Kodungaiyur</span></li>
           <li><b>Learn &amp; earn</b><span>AI skills for your future</span></li>
         </ul>
       </div>
