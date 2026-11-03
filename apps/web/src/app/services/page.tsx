@@ -6,7 +6,7 @@ import { EnquiryForm } from "@/components/EnquiryForm";
 export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Services",
-  description: "Property, construction, insurance and more from Goalai, Kodungaiyur. Send an enquiry and our team calls you back.",
+  description: "Property, construction, insurance and more from Goalai, serving all Chennai. Send an enquiry and our team calls you back.",
   alternates: { canonical: "/services" },
 };
 

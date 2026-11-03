@@ -101,7 +101,7 @@ export function CheckoutForm({ settings }: { settings: StoreSettings }) {
         <p className="muted" style={{ fontSize: ".84rem", marginTop: 0 }}>Ordering as <b>{user.email}</b></p>
         <div className="seg" role="radiogroup" aria-label="Pick up or delivery">
           <label><input type="radio" name="mode" checked={mode === "PICKUP"} onChange={() => setMode("PICKUP")} /><span>Pick up at shop</span></label>
-          <label><input type="radio" name="mode" checked={mode === "DELIVERY"} onChange={() => setMode("DELIVERY")} /><span>Deliver nearby</span></label>
+          <label><input type="radio" name="mode" checked={mode === "DELIVERY"} onChange={() => setMode("DELIVERY")} /><span>Home delivery (all Chennai)</span></label>
         </div>
         {mode === "DELIVERY" && (
           <div className="row2">

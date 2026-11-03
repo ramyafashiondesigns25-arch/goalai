@@ -19,7 +19,7 @@ const tamil = localFont({ src: [{ path: "../fonts/NotoSansTamil.woff2", weight: 
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
-  title: { default: "Goalai — Organic nuts, groceries & trusted services | Kodungaiyur, Chennai", template: "%s · Goalai" },
+  title: { default: "Goalai — Organic nuts, groceries & trusted services | All Chennai", template: "%s · Goalai" },
   description: SITE.description,
   openGraph: { type: "website", siteName: "Goalai", locale: "en_IN", images: [{ url: "/brand/goalai-logo.svg" }] },
   robots: { index: true, follow: true },

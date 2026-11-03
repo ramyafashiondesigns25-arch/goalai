@@ -20,7 +20,7 @@ export function DiwaliHero({ whatsapp }: { whatsapp: string }) {
             {live ? <>Shop {rupee(OFFER.threshold)}. <span>Get a FREE sweet box + AI business class.</span></> : <>Fresh, organic &amp; <span>honestly priced.</span></>}
           </h1>
           <p className="dw__lede">
-            {live ? "Fill your basket with organic nuts, dry fruits, millets and more. Cross " + rupee(OFFER.threshold) + " and you get a Deepavali " + OFFER.sweet + " sweet box, plus a free seat in our class on how to start a future business using AI." : "Organic nuts, dry fruits, millets and groceries, delivered from Kodungaiyur."}
+            {live ? "Fill your basket with organic nuts, dry fruits, millets and more. Cross " + rupee(OFFER.threshold) + " and you get a Deepavali " + OFFER.sweet + " sweet box, plus a free seat in our class on how to start a future business using AI." : "Organic nuts, dry fruits, millets and groceries, delivered across all Chennai."}
           </p>
           {live && <OfferCountdown />}
           <div className="dw__cta">
@@ -50,7 +50,7 @@ export function DiwaliHero({ whatsapp }: { whatsapp: string }) {
         <ul className="dw__trust">
           <li><b>100% organic</b><span>real photo, MRP &amp; fair price</span></li>
           <li><b>Pay on WhatsApp</b><span>no card, no gateway</span></li>
-          <li><b>Fast local delivery</b><span>Kodungaiyur &amp; nearby</span></li>
+          <li><b>Delivery across Chennai</b><span>all areas, shop in Kodungaiyur</span></li>
           <li><b>Learn &amp; earn</b><span>AI skills for your future</span></li>
         </ul>
       </div>

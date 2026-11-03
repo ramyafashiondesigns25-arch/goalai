@@ -6,7 +6,7 @@ import { Shelf } from "@/components/Shelf";
 export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Organic nuts, dry fruits & groceries",
-  description: "Shop organic cashews, almonds, dates, millets, wood-pressed oils and masala in Kodungaiyur, Chennai. Real photos, MRP and fair prices. Order online and pay on WhatsApp chat.",
+  description: "Shop organic cashews, almonds, dates, millets, wood-pressed oils and masala with delivery across all Chennai. Real photos, MRP and fair prices. Order online and pay on WhatsApp chat.",
   alternates: { canonical: "/shop" },
 };
 

@@ -28,7 +28,7 @@ export default async function Home() {
   const jsonLd = {
     "@context": "https://schema.org", "@type": "GroceryStore", name: "Goalai", url: SITE.url, telephone: SITE.phone,
     address: { "@type": "PostalAddress", addressLocality: "Kodungaiyur, Chennai", addressRegion: SITE.region, postalCode: SITE.postalCode, addressCountry: "IN" },
-    paymentAccepted: "UPI, Cash", priceRange: "₹₹",
+    areaServed: { "@type": "City", name: "Chennai" }, paymentAccepted: "UPI, Cash", priceRange: "₹₹",
   };
 
   return (
@@ -155,7 +155,7 @@ export default async function Home() {
           <div className="contact" style={{ gridTemplateColumns: "1fr" }}>
             <div>
               <p className="eyebrow" style={{ color: "#FFE1EE" }}>Visit or call</p>
-              <h2 id="ctTitle">Goalai, Kodungaiyur</h2>
+              <h2 id="ctTitle">Goalai, serving all Chennai</h2>
               <p>Organic groceries and dry fruits, plus property, construction and insurance services — one team that follows through.</p>
               <a className="big" href={SITE.phoneHref}>{SITE.phone}</a>
               <p>Open daily · Chennai</p>
