@@ -27,6 +27,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#D81B60", width: "device-width", initialScale: 1 };
 
+import { OFFER, isOfferActive } from "@/lib/offer";
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const settings = await getSettings();
   return (
@@ -36,7 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AuthProvider>
         <CartProvider>
         <WishProvider>
-          <div className="announce">100% organic · Free delivery in Kodungaiyur above ₹{settings.freeAbove} · Order online · pay on WhatsApp chat</div>
+          <div className="announce">{isOfferActive() ? `🪔 Deepavali offer: shop ₹${OFFER.threshold.toLocaleString("en-IN")}+ and get a FREE sweet box · ` : ""}100% organic · Free delivery above ₹{settings.freeAbove} · pay on WhatsApp chat</div>
           <Header />
           <main id="main">{children}</main>
           <Footer whatsapp={settings.whatsapp} />

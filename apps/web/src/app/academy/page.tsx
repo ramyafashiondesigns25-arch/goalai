@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSettings } from "@/lib/data";
 import { ACADEMY as A, waLink } from "@/lib/academy";
 import { SITE } from "@goalai/core/lib/site";
+import { OFFER } from "@/lib/offer";
 
 export const revalidate = 300;
 export const metadata: Metadata = {
@@ -28,9 +29,9 @@ export default async function AcademyPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <section className="hero glow" aria-labelledby="acadTitle">
         <div className="wrap" style={{ maxWidth: 920 }}>
-          <p className="eyebrow">{A.name} · {A.path}</p>
+          <p className="eyebrow">{A.name} · {A.path} · {OFFER.slotsLeft ? `Only ${OFFER.slotsLeft} seats left` : "Limited seats"}</p>
           <h1 id="acadTitle">Learn AI. <span>Earn with AI.</span></h1>
-          <p className="lede">{A.motto}. Switch to an AI career without quitting your job. Practical training by {A.coach}, {A.coachRole}. No degree needed.</p>
+          <p className="lede">{A.motto}. Learn business ideas using AI and build a skill that keeps paying you back. Switch to an AI career without quitting your job. Practical training by {A.coach}, {A.coachRole}. No degree needed.</p>
           <div className="hero__cta">
             <a className="btn btn--pink" href={seminarWa} target="_blank" rel="noopener">Join the {rupee(A.seminar.fee)} AI seminar</a>
             <a className="btn btn--white" href={courseWa} target="_blank" rel="noopener">Enrol in the 3-month class</a>

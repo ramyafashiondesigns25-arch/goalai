@@ -5,6 +5,8 @@ import { useEffect, useRef } from "react";
 import { rupee } from "@goalai/core/lib/pricing";
 import type { StoreSettings } from "@goalai/core/lib/types";
 import { useCart } from "./CartProvider";
+import { useOfferActive } from "./useOffer";
+import { OFFER } from "@/lib/offer";
 import { ProductVisual } from "@goalai/core/components/ProductVisual";
 
 export function CartDrawer({ settings }: { settings: StoreSettings }) {
@@ -19,6 +21,8 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, setOpen]);
 
+  const offerOn = useOfferActive();
+  const giftLeft = Math.max(0, OFFER.threshold - subtotal);
   const left = Math.max(0, settings.freeAbove - subtotal);
   return (
     <>
@@ -45,6 +49,12 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
         <div className="drawer__foot">
           {lines.length > 0 ? (
             <>
+              {offerOn && (
+                <div className={`giftbar${giftLeft ? "" : " giftbar--on"}`}>
+                  <span>{giftLeft ? `🎁 Add ${rupee(giftLeft)} more to get a FREE sweet box` : "🎁 You unlocked a FREE Deepavali sweet box!"}</span>
+                  <div className="meter"><i style={{ width: `${Math.min(100, (subtotal / OFFER.threshold) * 100)}%` }} /></div>
+                </div>
+              )}
               <div className="hint">{left ? `Add ${rupee(left)} more for free home delivery.` : "Free home delivery on this basket."}</div>
               <div className="meter"><i style={{ width: `${Math.min(100, (subtotal / Math.max(1, settings.freeAbove)) * 100)}%` }} /></div>
               <div className="sum sum--total"><span>{count} item{count === 1 ? "" : "s"}</span><span>{rupee(subtotal)}</span></div>

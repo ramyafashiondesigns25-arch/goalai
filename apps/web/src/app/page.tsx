@@ -3,6 +3,7 @@ import { getProducts, getServices, getSettings, getStoreCategories } from "@/lib
 import { KITS, mainCats } from "@goalai/core/lib/catalog";
 import { SITE } from "@goalai/core/lib/site";
 import { ACADEMY } from "@/lib/academy";
+import { DiwaliHero } from "@/components/DiwaliHero";
 import { HomeSide } from "@/components/HomeSide";
 import { HeroStage } from "@/components/HeroStage";
 import { ProductCard } from "@/components/ProductCard";
@@ -33,13 +34,14 @@ export default async function Home() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <DiwaliHero whatsapp={settings.whatsapp} />
       <section className="hero glow" aria-labelledby="heroTitle">
         <div className="wrap homegrid">
           <HomeSide cats={allCats} products={products} />
           <div className="hero__grid">
           <div>
             <p className="hero__ta">இயற்கை முந்திரி, பாதாம், மளிகை — நியாய விலையில்</p>
-            <h1 id="heroTitle">Only organic, <span>honestly priced.</span></h1>
+            <h2 id="heroTitle" className="h1like">Only organic, <span>honestly priced.</span></h2>
             <p className="lede">Organic cashews, almonds, dates and dry fruits beside your monthly rice, dal, millets, wood-pressed oils and masala. Every product shows its real photo, MRP and our price — and how much less it costs than other online marts and retail shops.</p>
             <div className="hero__cta">
               <Link className="btn btn--pink" href="/shop?cat=nuts">Shop nuts &amp; dry fruits</Link>
