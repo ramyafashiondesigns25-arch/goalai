@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { COURSES, PERSONAS, waLink, type AcademyCourse } from "@/lib/academy";
+import { COURSES, PERSONAS, priceLabel, waLink, type AcademyCourse } from "@/lib/academy";
 
 const rupee = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
@@ -30,16 +30,19 @@ export function AcademyInteractive({ whatsapp }: { whatsapp: string }) {
 
   // header chips ("#course-robotics") select a course
   useEffect(() => {
-    const fromHash = () => { const m = location.hash.match(/^#course-(ai|marketing|robotics)$/); if (m) setId(m[1] as AcademyCourse["id"]); };
+    const fromHash = () => { const m = location.hash.match(/^#course-(ai|marketing|robotics|esevai|ecom)$/); if (m) setId(m[1] as AcademyCourse["id"]); };
     fromHash(); window.addEventListener("hashchange", fromHash);
     return () => window.removeEventListener("hashchange", fromHash);
   }, []);
 
-  const wa = waLink(whatsapp, `Hi, I want to join the ${c.name} at GoalAI Academy (${c.from ? "from " : ""}${rupee(c.fee)}). Please share the batch details.`);
-  const max = c.othersHigh;
-  const save = c.mrp - c.fee;
-  const less = c.othersLow - c.fee;
-  const off = Math.round((save / c.mrp) * 100);
+  const wa = waLink(whatsapp, `Hi, I want to join the ${c.name} at GoalAI Academy (${priceLabel(c)}). Please share the ${c.contact ? "fee and " : ""}batch details.`);
+  const fee = c.fee ?? 0;
+  const hasMrp = c.mrp != null && c.fee != null && c.mrp > c.fee;
+  const hasOthers = c.fee != null && c.othersLow != null && c.othersHigh != null;
+  const max = c.othersHigh ?? 0;
+  const save = hasMrp ? c.mrp! - fee : 0;
+  const less = hasOthers ? c.othersLow! - fee : 0;
+  const off = hasMrp ? Math.round((save / c.mrp!) * 100) : 0;
 
   return (
     <div ref={root}>
@@ -54,7 +57,7 @@ export function AcademyInteractive({ whatsapp }: { whatsapp: string }) {
               <button key={x.id} id={`course-${x.id}`} role="tab" type="button" aria-selected={x.id === id} aria-controls="alPanel" className={`al-tab${x.id === id ? " on" : ""}`} onClick={() => setId(x.id)}>
                 <span className="al-tab__ico" aria-hidden="true">{x.icon}</span>
                 <span className="al-tab__t">{x.name}<em lang="ta" className="ta">{x.ta}</em></span>
-                <span className="al-tab__p"><s>{rupee(x.mrp)}</s><b>{x.from ? "from " : ""}{rupee(x.fee)}</b></span>
+                <span className="al-tab__p">{x.mrp != null && x.fee != null ? <s>{rupee(x.mrp)}</s> : null}<b>{priceLabel(x)}</b></span>
               </button>
             ))}
           </div>
@@ -69,15 +72,24 @@ export function AcademyInteractive({ whatsapp }: { whatsapp: string }) {
               <p className="al-mode">🎯 {c.mode}</p>
             </div>
             <aside className="al-panel__side" aria-label="Fee comparison">
-              <p className="al-price"><s>{rupee(c.mrp)}</s><b>{c.from ? <small>starting </small> : null}{rupee(c.fee)}</b><em>{off}% off</em></p>
-              <p className="al-save">You save <b>{rupee(save)}</b> on the regular fee</p>
-              <div className="al-bars">
-                <div className="al-bar"><span>Goalai Academy</span><i><b className="al-bar__g" style={{ width: grow ? `${Math.max(6, (c.fee / max) * 100)}%` : "0%" }}>{rupee(c.fee)}</b></i></div>
-                <div className="al-bar"><span>Others (typical)*</span><i><b className="al-bar__o" style={{ width: grow ? "100%" : "0%" }}>{c.othersLow === c.othersHigh ? rupee(c.othersLow) : `${rupee(c.othersLow)} – ${rupee(c.othersHigh)}`}</b></i></div>
-              </div>
-              <p className="al-less">That is at least <b>{rupee(less)}</b> less than typical institute fees.</p>
-              <a className="btn btn--pink btn--block" href={wa} target="_blank" rel="noopener">Enrol on WhatsApp · <span lang="ta" className="ta">சேருங்கள்</span></a>
-              <p className="al-fine">*Our estimate of what institutes commonly charge; fees vary.</p>
+              {c.contact || c.fee == null ? (
+                <p className="al-price"><b>Contact sales</b></p>
+              ) : (
+                <p className="al-price">{hasMrp ? <s>{rupee(c.mrp!)}</s> : null}<b>{c.from ? <small>starting </small> : null}{rupee(fee)}</b>{hasMrp ? <em>{off}% off</em> : null}</p>
+              )}
+              {hasMrp ? <p className="al-save">You save <b>{rupee(save)}</b> on the regular fee</p> : null}
+              {c.contact ? <p className="al-save">Fee depends on your batch and goals. Message us and our team will share the price.</p> : null}
+              {hasOthers ? (
+                <>
+                  <div className="al-bars">
+                    <div className="al-bar"><span>Goalai Academy</span><i><b className="al-bar__g" style={{ width: grow ? `${Math.max(6, (fee / max) * 100)}%` : "0%" }}>{rupee(fee)}</b></i></div>
+                    <div className="al-bar"><span>Others (typical)*</span><i><b className="al-bar__o" style={{ width: grow ? "100%" : "0%" }}>{c.othersLow === c.othersHigh ? rupee(c.othersLow!) : `${rupee(c.othersLow!)} – ${rupee(c.othersHigh!)}`}</b></i></div>
+                  </div>
+                  <p className="al-less">That is at least <b>{rupee(less)}</b> less than typical institute fees.</p>
+                </>
+              ) : null}
+              <a className="btn btn--pink btn--block" href={wa} target="_blank" rel="noopener">{c.contact ? "Contact sales on WhatsApp" : "Enrol on WhatsApp"} · <span lang="ta" className="ta">{c.contact ? "விலை அறிய" : "சேருங்கள்"}</span></a>
+              {hasOthers ? <p className="al-fine">*Our estimate of what institutes commonly charge; fees vary.</p> : null}
             </aside>
           </div>
         </div>
@@ -106,8 +118,8 @@ export function AcademyInteractive({ whatsapp }: { whatsapp: string }) {
       </section>
 
       <div className={`al-sticky${showBar ? " show" : ""}`} aria-hidden={!showBar}>
-        <div><b>{c.name}</b><span>{c.from ? "from " : ""}{rupee(c.fee)} <s>{rupee(c.mrp)}</s></span></div>
-        <a className="btn btn--pink btn--sm" href={wa} target="_blank" rel="noopener" tabIndex={showBar ? 0 : -1}>Enrol</a>
+        <div><b>{c.name}</b><span>{priceLabel(c)} {hasMrp ? <s>{rupee(c.mrp!)}</s> : null}</span></div>
+        <a className="btn btn--pink btn--sm" href={wa} target="_blank" rel="noopener" tabIndex={showBar ? 0 : -1}>{c.contact ? "Contact" : "Enrol"}</a>
       </div>
     </div>
   );

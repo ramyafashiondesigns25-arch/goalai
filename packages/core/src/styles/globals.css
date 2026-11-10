@@ -912,7 +912,7 @@ a.add { display: inline-block; text-decoration: none; text-align: center; }
 
 .al-head { max-width: 760px; margin-bottom: 1.6rem; } .al-head h2 { font-size: clamp(1.9rem, 4.2vw, 3rem); margin-bottom: .3em; }
 .al-head h2 span { font-style: italic; color: var(--pink-tx); }
-.al-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin-bottom: 1rem; }
+.al-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: .8rem; margin-bottom: 1rem; }
 .al-tab { all: unset; box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: auto 1fr; gap: .2rem .7rem; align-items: center; background: #fff; border: 2px solid var(--line); border-radius: var(--r-lg); padding: .9rem 1rem; transition: all .2s; }
 .al-tab:hover { border-color: var(--line-2); transform: translateY(-2px); }
 .al-tab.on { border-color: var(--pink); background: linear-gradient(135deg, #FFF0F6, #fff); box-shadow: var(--glow-sm); }

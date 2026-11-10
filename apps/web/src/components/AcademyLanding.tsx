@@ -1,4 +1,4 @@
-import { ACADEMY as A, COURSES, FAQ, waLink } from "@/lib/academy";
+import { ACADEMY as A, COURSES, FAQ, priceLabel, waLink } from "@/lib/academy";
 import { AiArt } from "./AiArt";
 import { AcademyInteractive } from "./AcademyInteractive";
 
@@ -17,10 +17,10 @@ export function AcademyLanding({ whatsapp, as = "h1" }: { whatsapp: string; as?:
             <p className="al-live"><span aria-hidden="true" />Now running · <span lang="ta" className="ta">இப்போது நடைபெறுகிறது</span></p>
             <H id="alTitle">Learn AI. Build your own business. <span>Keep your job.</span></H>
             <p className="al-hero__ta" lang="ta">AI கற்றுக்கொள்ளுங்கள் · சொந்தத் தொழில் உருவாக்குங்கள் · வேலையை விட வேண்டாம்</p>
-            <p className="al-hero__lede">AI, AI Digital Marketing and Robotics classes with a friendly coach, <b>{A.coach}</b>. Why pay expensive institute fees to learn?</p>
+            <p className="al-hero__lede">AI, AI Digital Marketing, Robotics, eSevai and e-commerce selling classes with a friendly coach, <b>{A.coach}</b>. Why pay expensive institute fees to learn?</p>
             <ul className="al-pills" aria-label="Class fees">
               {COURSES.map((c) => (
-                <li key={c.id}><a href={`#course-${c.id}`}><span aria-hidden="true">{c.icon}</span><b>{c.name}</b><em>{c.from ? "from " : ""}{rupee(c.fee)} <s>{rupee(c.mrp)}</s></em></a></li>
+                <li key={c.id}><a href={`#course-${c.id}`}><span aria-hidden="true">{c.icon}</span><b>{c.name}</b><em>{priceLabel(c)} {c.mrp != null && c.fee != null ? <s>{rupee(c.mrp)}</s> : null}</em></a></li>
               ))}
             </ul>
             <div className="al-hero__cta">

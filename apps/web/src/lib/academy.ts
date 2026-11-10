@@ -36,11 +36,12 @@ export const ACADEMY = {
 } as const;
 
 export interface AcademyCourse {
-  id: "ai" | "marketing" | "robotics";
+  id: "ai" | "marketing" | "robotics" | "esevai" | "ecom";
   name: string; ta: string; icon: string;
-  fee: number; mrp: number; from?: boolean;
+  /** fee/mrp omitted + contact:true = "Contact sales" pricing. mrp omitted = no strike-through. */
+  fee?: number; mrp?: number; from?: boolean; contact?: boolean;
   /** What institutes commonly charge (our market estimate). */
-  othersLow: number; othersHigh: number;
+  othersLow?: number; othersHigh?: number;
   tag: string; blurb: string; ta_blurb: string;
   mode: string;
   modules: { t: string; d: string }[];
@@ -77,12 +78,34 @@ export const COURSES: AcademyCourse[] = [
       { t: "Add AI", d: "Bring vision and smart behaviour into your robot projects." },
     ],
   },
+  {
+    id: "esevai", name: "eSevai Service Class", ta: "இ-சேவை பயிற்சி", icon: "🏛️", fee: 4999,
+    tag: "Start a service centre", mode: "Live + recorded classes · with ID",
+    blurb: "Learn to run an eSevai / citizen-service centre: apply for certificates and online government services for customers, step by step.",
+    ta_blurb: "இ-சேவை மையம் நடத்தக் கற்றுக்கொள்ளுங்கள் — சான்றிதழ்கள், அரசு ஆன்லைன் சேவைகளை வாடிக்கையாளருக்கு விண்ணப்பிக்கும் முறை.",
+    modules: [
+      { t: "Certificates & IDs", d: "Community, income, nativity and other certificates; Aadhaar, voter ID, ration card and PAN services." },
+      { t: "Online services", d: "Bills, tax, scholarships and welfare-scheme applications through government portals." },
+      { t: "Run your centre", d: "Documents to collect, customer handling, service charges and how to start earning." },
+    ],
+  },
+  {
+    id: "ecom", name: "E-commerce Selling Training", ta: "இ-காமர்ஸ் விற்பனை பயிற்சி", icon: "🛒", contact: true,
+    tag: "Sell online", mode: "Amazon · Flipkart · Meesho · price on contact sales",
+    blurb: "Sell your own products on Amazon, Flipkart and Meesho. Learn how to start the business, from account setup to your first orders.",
+    ta_blurb: "உங்கள் பொருட்களை Amazon, Flipkart, Meesho-வில் விற்கக் கற்றுக்கொள்ளுங்கள் — தொழிலை எப்படித் தொடங்குவது என்பது வரை.",
+    modules: [
+      { t: "Start the business", d: "Choose products, registration and GST basics, and open seller accounts on all three platforms." },
+      { t: "List & price", d: "Product photos, titles, listings, pricing, shipping and returns." },
+      { t: "Grow sales", d: "Orders, reviews, ads and handling payments so your sales keep growing." },
+    ],
+  },
 ];
 
 export const FAQ: { q: string; a: string }[] = [
   { q: "Do I have to quit my job?", a: "No. Please don't. These classes are made so you can learn next to your job or studies and build your own AI business on the side. Many people start small and grow at their own pace." },
   { q: "I am a beginner. Can I join?", a: "Yes. We start from the basics and you learn by doing. You do not need a degree." },
-  { q: "Are the classes live?", a: "The Robotics class is live only. For batch dates and timings of the other classes, message us on WhatsApp." },
+  { q: "Are the classes live?", a: "The Robotics class is live only. The eSevai class has live and recorded classes. For batch dates and timings of the other classes, message us on WhatsApp." },
   { q: "Will I get a job or a fixed income?", a: "No one can promise that, and we don't. Goalai Academy teaches you skills. Your results depend on your effort and the market." },
   { q: "How do I enrol and pay?", a: "Chat with us on WhatsApp or call. We share the batch details and confirm your seat on the chat." },
 ];
@@ -91,7 +114,12 @@ export const PERSONAS: { id: string; label: string; ta: string; text: string; pi
   { id: "student", label: "Student", ta: "மாணவர்", pick: "ai", text: "Add a skill that clients and employers ask for while you study. No degree is needed to start." },
   { id: "job", label: "Working professional", ta: "வேலை செய்பவர்", pick: "ai", text: "Learn in your free time and build an AI business beside your job. Keep your salary, grow a second income. Don't quit your job." },
   { id: "owner", label: "Business owner", ta: "தொழில் உரிமையாளர்", pick: "marketing", text: "Use AI marketing to get customers, make content and reply faster for your own shop or service." },
+  { id: "seller", label: "Want to sell online", ta: "ஆன்லைனில் விற்க", pick: "ecom", text: "Learn to sell your products on Amazon, Flipkart and Meesho and start your own online business. Contact sales for the fee." },
   { id: "maker", label: "Tech lover", ta: "தொழில்நுட்ப ஆர்வலர்", pick: "robotics", text: "Build real robots in live classes and learn how AI makes machines smart." },
 ];
+
+export const rupeeFmt = (n: number) => "₹" + n.toLocaleString("en-IN");
+/** Price label for a course: "₹4,999", "from ₹24,999" or "Contact sales". */
+export const priceLabel = (c: AcademyCourse) => (c.contact || c.fee == null ? "Contact sales" : `${c.from ? "from " : ""}${rupeeFmt(c.fee)}`);
 
 export const waLink = (whatsapp: string, text: string) => `https://wa.me/${whatsapp}?text=${encodeURIComponent(text)}`;
