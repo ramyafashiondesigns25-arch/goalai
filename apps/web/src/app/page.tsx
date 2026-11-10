@@ -3,7 +3,7 @@ import { getProducts, getServices, getSettings, getStoreCategories } from "@/lib
 import { KITS, mainCats } from "@goalai/core/lib/catalog";
 import { SITE } from "@goalai/core/lib/site";
 import { ACADEMY } from "@/lib/academy";
-import { DiwaliHero } from "@/components/DiwaliHero";
+import { AcademyLanding } from "@/components/AcademyLanding";
 import { HomeSide } from "@/components/HomeSide";
 import { HeroStage } from "@/components/HeroStage";
 import { ProductCard } from "@/components/ProductCard";
@@ -34,7 +34,7 @@ export default async function Home() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <DiwaliHero whatsapp={settings.whatsapp} />
+      <AcademyLanding whatsapp={settings.whatsapp} as="h1" />
       <section className="hero glow" aria-labelledby="heroTitle">
         <div className="wrap homegrid">
           <HomeSide cats={allCats} products={products} />
