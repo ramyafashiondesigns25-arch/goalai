@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/products", label: "Products", staff: false },
   { href: "/categories", label: "Categories", staff: false },
   { href: "/customers", label: "Customers", staff: false },
+  { href: "/reviews", label: "Reviews", staff: false },
   { href: "/coupons", label: "Coupons", staff: false },
   { href: "/opportunities", label: "Opportunities", staff: false },
   { href: "/applications", label: "Applications", staff: false },

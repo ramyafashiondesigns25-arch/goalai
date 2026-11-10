@@ -15,6 +15,7 @@ export function fromRow(r: ProductRow): Product {
     tag: r.tag ?? "", color: r.color || "#C98A4B", sort: r.sort ?? 0, active: r.active !== false,
     gallery: Array.isArray(r.gallery) ? r.gallery.filter((u): u is string => typeof u === "string" && !!u) : [],
     variants: [],
+    organic: !!r.organic, ratingAvg: 0, ratingCount: 0,
   };
 }
 
@@ -42,6 +43,13 @@ export function attachVariants(products: Product[], rows: VariantRow[]): Product
   return products.map((p) => ({ ...p, variants: (by.get(p.id) ?? []).sort((a, b) => a.sort - b.sort) }));
 }
 
+/** Attach published-review totals (rows of product_id + rating) to products. */
+export function attachRatings(products: Product[], rows: { product_id: string; rating: number }[]): Product[] {
+  const agg = new Map<string, { n: number; sum: number }>();
+  for (const r of rows) { const a = agg.get(r.product_id) ?? { n: 0, sum: 0 }; a.n += 1; a.sum += r.rating; agg.set(r.product_id, a); }
+  return products.map((p) => { const a = agg.get(p.id); return a ? { ...p, ratingCount: a.n, ratingAvg: Math.round((a.sum / a.n) * 10) / 10 } : p; });
+}
+
 /** Human label for a variant, e.g. "500 g · Red". */
 export const variantLabel = (v: Pick<ProductVariant, "label" | "colourName">) => [v.label.trim(), v.colourName.trim()].filter(Boolean).join(" · ");
 
@@ -58,7 +66,7 @@ export function toRow(p: Product): ProductRow {
   return {
     id: p.id, cat: p.cat, sub: p.sub, name: p.name, ta: p.ta, size: p.size, price: p.price, mrp: p.mrp, stock: p.stock,
     description: p.desc, details: p.details, cert: p.cert, is_new: p.isNew, image_url: p.img, image_path: p.imgPath,
-    pack_type: p.type, tag: p.tag, color: p.color, sort: p.sort, active: p.active, gallery: p.gallery,
+    pack_type: p.type, tag: p.tag, color: p.color, sort: p.sort, active: p.active, gallery: p.gallery, organic: p.organic,
   };
 }
 

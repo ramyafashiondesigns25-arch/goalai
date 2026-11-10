@@ -59,7 +59,7 @@ export function ProductHero({ p, url, children }: { p: Product; url: string; chi
         )}
       </div>
       <div className="pv__info">
-        <span className="prod__org prod__org--static">Organic{p.cert ? ` · ${p.cert}` : ""}</span>
+        {p.organic && <span className="prod__org prod__org--static">Organic{p.cert ? ` · ${p.cert}` : ""}</span>}
         <h1 style={{ fontSize: "clamp(1.7rem,3.4vw,2.4rem)", margin: "0 0 .2rem" }}>{p.name}</h1>
         <p className="pv__sub"><span className="ta">{p.ta}</span> · {v ? variantLabel(v) || p.size : p.size}</p>
         <div className="pv__price"><b>{rupee(price)}</b>{mrp > price && <><s>MRP {rupee(mrp)}</s><span className="pv__off">You save {rupee(mrp - price)}</span></>}</div>

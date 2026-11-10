@@ -3,6 +3,7 @@ import { comparePrices, offPct, rupee } from "@goalai/core/lib/pricing";
 import { priceRange } from "@goalai/core/lib/mappers";
 import type { Product, StoreSettings } from "@goalai/core/lib/types";
 import { ProductVisual } from "@goalai/core/components/ProductVisual";
+import { Stars } from "./Stars";
 import { BuyButton } from "./BuyButton";
 import { WishButton } from "./WishButton";
 import { ShareButton } from "./ShareButton";
@@ -19,11 +20,12 @@ export function ProductCard({ p, s }: { p: Product; s: StoreSettings }) {
       <Link className={`prod__stage${p.img ? " prod__stage--ph" : ""}`} href={`/product/${p.id}`} aria-label={`View ${p.name}`}>
         {off > 0 && <span className="prod__off">{off}% OFF</span>}
         {p.isNew && <span className="prod__new">NEW</span>}
-        <span className="prod__org">Organic</span>
+        {p.organic && <span className="prod__org">Organic</span>}
         <ProductVisual p={p} />
       </Link>
       <h3><Link href={`/product/${p.id}`}>{p.name}</Link></h3>
       <div className="ta">{p.ta}</div>
+      {p.ratingCount > 0 && <Link className="prod__rate" href={`/product/${p.id}#reviews`}><Stars value={p.ratingAvg} size={14} /><span>{p.ratingAvg.toFixed(1)} ({p.ratingCount})</span></Link>}
       <div className="prod__size">{p.variants.length ? `${p.variants.length} options` : p.size}</div>
       <div className="prod__buy">
         <span className="price"><b>{pr.min < pr.max ? "from " : ""}{rupee(pr.min)}</b>{pr.mrp > pr.min && <s>MRP {rupee(pr.mrp)}</s>}</span>

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProduct, getProducts, getSettings, getStoreCategories } from "@/lib/data";
+import { getProduct, getProducts, getReviews, getSettings, getStoreCategories } from "@/lib/data";
 import { catName } from "@goalai/core/lib/catalog";
 import { rupee } from "@goalai/core/lib/pricing";
 import { SITE } from "@goalai/core/lib/site";
 import { ProductHero } from "@/components/ProductHero";
+import { ReviewsSection } from "@/components/ReviewsSection";
 import { PriceCheck } from "@goalai/core/components/PriceCheck";
 import { ProductCard } from "@/components/ProductCard";
 
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [p, settings, all, cats] = await Promise.all([getProduct(id), getSettings(), getProducts(), getStoreCategories()]);
+  const [p, settings, all, cats, reviews] = await Promise.all([getProduct(id), getSettings(), getProducts(), getStoreCategories(), getReviews(id)]);
   if (!p) notFound();
   // same sub-category first (other badam packs), then the rest of the main category
   const pool = all.filter((x) => x.cat === p.cat && x.id !== p.id);
@@ -36,6 +37,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const jsonLd = {
     "@context": "https://schema.org", "@type": "Product", name: p.name, description: p.desc || undefined,
     image: [p.img, ...p.gallery].filter(Boolean) as string[], sku: p.id, category: [catName(p.cat, cats), p.sub ? catName(p.sub, cats) : ""].filter(Boolean).join(" > "),
+    ...(p.ratingCount > 0 ? { aggregateRating: { "@type": "AggregateRating", ratingValue: p.ratingAvg, reviewCount: p.ratingCount } } : {}),
+    ...(reviews.length ? { review: reviews.slice(0, 10).map((r) => ({ "@type": "Review", author: { "@type": "Person", name: r.author }, datePublished: r.createdAt.slice(0, 10), reviewBody: r.body || undefined, name: r.title || undefined, reviewRating: { "@type": "Rating", ratingValue: r.rating } })) } : {}),
     offers: p.variants.length
       ? { "@type": "AggregateOffer", priceCurrency: "INR", lowPrice: Math.min(...p.variants.map((x) => x.price)), highPrice: Math.max(...p.variants.map((x) => x.price)), offerCount: p.variants.length, url: `${SITE.url}/product/${p.id}`,
           availability: p.variants.every((x) => x.stock === 0) ? "https://schema.org/OutOfStock" : "https://schema.org/InStock" }
@@ -55,6 +58,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           )}
         </ProductHero>
         <PriceCheck p={p} s={settings} />
+        <ReviewsSection p={p} reviews={reviews} />
         {related.length > 0 && (
           <>
             <div className="head" style={{ marginTop: "2.4rem" }}><div><h2 style={{ fontSize: "1.8rem", margin: 0 }}>More from {catName(p.cat, cats)}</h2></div></div>

@@ -15,7 +15,7 @@ const ref = z.string().trim().regex(/^[A-Za-z0-9_-]{2,30}$/).optional().nullable
 /** Database errors raised by our functions are written for customers; anything else gets a generic message. */
 function friendly(err: { message?: string } | null | undefined, fallback: string) {
   const m = err?.message ?? "";
-  const known = /^(Please|Coupon|This order|This opening|This UPI|Your payment|You have already|Several payments|Your basket|One of the items|Please choose|Only \d+|Maximum|Several orders|We already have|Too many|Choose|Could not|.+ is out of stock\.)/;
+  const known = /^(Please|Coupon|This order|This opening|This UPI|Your payment|You have already|Several payments|Your basket|One of the items|Please choose|Only customers|Only \d+|Maximum|Several orders|We already have|Too many|Choose|Could not|.+ is out of stock\.)/;
   return known.test(m) ? m : fallback;
 }
 
@@ -162,4 +162,25 @@ export async function trackOrder(code: string, phoneRaw: string): Promise<Action
   if (error) return { ok: false, error: "Couldn't look up the order just now. Please try again." };
   if (!data) return { ok: false, error: "No order found with that number and mobile." };
   return { ok: true, data: data as TrackedOrder };
+}
+
+/* ------------------------------------------------------------------ reviews */
+const ReviewInput = z.object({
+  product: z.string().regex(/^[a-z0-9-]{1,80}$/),
+  rating: z.number().int().min(1, "Please choose a rating from 1 to 5 stars.").max(5, "Please choose a rating from 1 to 5 stars."),
+  title: z.string().trim().max(80).optional().default(""),
+  body: z.string().trim().max(1000, "Please keep your review under 1000 characters.").optional().default(""),
+});
+
+/** Only a signed-in customer who ordered the product can review it (checked again in Postgres). */
+export async function submitReview(input: z.input<typeof ReviewInput>): Promise<ActionResult<{ product: string }>> {
+  const v = ReviewInput.safeParse(input);
+  if (!v.success) return { ok: false, error: v.error.issues[0]?.message ?? "Please check your review." };
+  const { error } = await (await sessionClient()).rpc("submit_review", { p_product: v.data.product, p_rating: v.data.rating, p_title: v.data.title, p_body: v.data.body });
+  if (error) {
+    console.error("[submitReview]", error.message);
+    return { ok: false, error: friendly(error, "We couldn't save your review just now. Please try again.") };
+  }
+  revalidatePath(`/product/${v.data.product}`);
+  return { ok: true, data: { product: v.data.product } };
 }

@@ -1,10 +1,10 @@
 import "server-only";
 import { cache } from "react";
 import { publicClient } from "@goalai/core/lib/supabase/public";
-import { attachVariants, fromRow, settingsFromRow } from "@goalai/core/lib/mappers";
+import { attachRatings, attachVariants, fromRow, settingsFromRow } from "@goalai/core/lib/mappers";
 import { DEFAULT_SETTINGS } from "@goalai/core/lib/pricing";
 import { STORE_CATS, type StoreCategory } from "@goalai/core/lib/catalog";
-import type { Product, ProductRow, Service, StoreSettings, VariantRow } from "@goalai/core/lib/types";
+import type { Product, ProductRow, Review, Service, StoreSettings, VariantRow } from "@goalai/core/lib/types";
 import type { OppCategory, Opportunity } from "@goalai/core/lib/opportunities";
 
 /* Public catalogue reads. Each fails soft (empty data + a server log) so a
@@ -17,7 +17,9 @@ export const getProducts = cache(async (): Promise<Product[]> => {
     const products = (data as ProductRow[]).map(fromRow);
     const { data: vs, error: ve } = await publicClient().from("store_product_variants").select("*").eq("active", true).order("sort");
     if (ve) console.error("[data] variants", ve);
-    return attachVariants(products, (vs as VariantRow[] | null) ?? []);
+    const { data: rs, error: re } = await publicClient().from("store_reviews").select("product_id,rating").eq("published", true);
+    if (re) console.error("[data] ratings", re);
+    return attachRatings(attachVariants(products, (vs as VariantRow[] | null) ?? []), (rs as { product_id: string; rating: number }[] | null) ?? []);
   } catch (e) {
     console.error("[data] products", e);
     return [];
@@ -32,10 +34,24 @@ export const getProduct = cache(async (id: string): Promise<Product | null> => {
     if (!data) return null;
     const { data: vs, error: ve } = await publicClient().from("store_product_variants").select("*").eq("product_id", id).eq("active", true).order("sort");
     if (ve) console.error("[data] variants", ve);
-    return attachVariants([fromRow(data as ProductRow)], (vs as VariantRow[] | null) ?? [])[0] ?? null;
+    const { data: rs, error: re } = await publicClient().from("store_reviews").select("product_id,rating").eq("product_id", id).eq("published", true);
+    if (re) console.error("[data] ratings", re);
+    return attachRatings(attachVariants([fromRow(data as ProductRow)], (vs as VariantRow[] | null) ?? []), (rs as { product_id: string; rating: number }[] | null) ?? [])[0] ?? null;
   } catch (e) {
     console.error("[data] product", e);
     return null;
+  }
+});
+
+export const getReviews = cache(async (productId: string): Promise<Review[]> => {
+  try {
+    const { data, error } = await publicClient().from("store_reviews").select("id,product_id,author,rating,title,body,created_at")
+      .eq("product_id", productId).eq("published", true).order("created_at", { ascending: false }).limit(50);
+    if (error) throw error;
+    return (data ?? []).map((r) => ({ id: r.id, productId: r.product_id, author: r.author, rating: r.rating, title: r.title, body: r.body, createdAt: r.created_at }));
+  } catch (e) {
+    console.error("[data] reviews", e);
+    return [];
   }
 });
 

@@ -12,7 +12,7 @@ import { ProductVisual } from "@goalai/core/components/ProductVisual";
 
 const blank = (): Product => ({
   id: "", cat: STORE_CATS[0]!.id, sub: null, name: "", ta: "", size: "", price: 0, mrp: 0, stock: 20, desc: "", details: [], cert: "",
-  isNew: false, img: null, imgPath: null, type: "pouch", tag: "", color: STORE_CATS[0]!.color, sort: 0, active: true, gallery: [], variants: [],
+  isNew: false, img: null, imgPath: null, type: "pouch", tag: "", color: STORE_CATS[0]!.color, sort: 0, active: true, gallery: [], variants: [], organic: false, ratingAvg: 0, ratingCount: 0,
 });
 
 /** Storage path of one of our public photo URLs (so replaced/removed photos can be cleaned up). */
@@ -54,6 +54,7 @@ export function ProductsAdmin() {
   const [edit, setEdit] = useState<Product | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [cats, setCats] = useState<StoreCategory[]>(STORE_CATS);
+  const [costs, setCosts] = useState<Record<string, number>>({});
 
   // categories made in admin → Categories (falls back to the built-in shelves if they cannot be read)
   useEffect(() => {
@@ -66,6 +67,8 @@ export function ProductsAdmin() {
     const { data, error } = await browserClient().from("store_products").select("*").order("sort").order("name");
     setLoading(false);
     if (error) { setErr(error.message); return; }
+    const { data: cs } = await browserClient().from("store_product_costs").select("product_id,cost");
+    setCosts(Object.fromEntries(((cs ?? []) as { product_id: string; cost: number }[]).map((c) => [c.product_id, Number(c.cost)])));
     const { data: vs, error: ve } = await browserClient().from("store_product_variants").select("*").order("sort");
     if (ve) { setErr("Couldn't load variants: " + ve.message); }
     else setErr("");
@@ -91,15 +94,16 @@ export function ProductsAdmin() {
       </div>
       {err && <p className="form-err">{err}</p>}
       <div className="admtable"><table>
-        <thead><tr><th>Photo</th><th>Product</th><th>Category</th><th>MRP</th><th>Price</th><th>Stock</th><th>Image</th><th /></tr></thead>
+        <thead><tr><th>Photo</th><th>Product</th><th>Category</th><th>MRP</th><th>Price</th><th>Margin</th><th>Stock</th><th>Image</th><th /></tr></thead>
         <tbody>
-          {loading ? <tr><td colSpan={8} className="empty">Loading…</td></tr> : list.map((p) => (
+          {loading ? <tr><td colSpan={9} className="empty">Loading…</td></tr> : list.map((p) => (
             <tr key={p.id} className={p.active ? undefined : "is-hidden"}>
               <td><div className="admthumb"><ProductVisual p={p} variant="adm" /></div></td>
               <td><b>{p.name}</b><small>{p.ta} · {p.variants.length ? `${p.variants.length} variants` : p.size}{p.gallery.length ? ` · ${p.gallery.length + (p.img ? 1 : 0)} photos` : ""}{p.active ? "" : " · hidden from store"}</small></td>
               <td>{catName(p.cat, cats)}{p.sub && <small>{catName(p.sub, cats)}</small>}</td>
               <td><s>{rupee(p.mrp)}</s></td>
               <td><b>{rupee(p.price)}</b>{offPct(p) > 0 && <small>{offPct(p)}% off</small>}</td>
+              <td>{costs[p.id] != null ? <><b>{Math.round((p.price / costs[p.id]! - 1) * 100)}%</b><small>cost {rupee(costs[p.id]!)}</small></> : <small>—</small>}</td>
               <td>{p.stock === 0 ? <span className="pill pill--out">Out</span> : <span className="pill">{p.stock ?? "—"}</span>}</td>
               <td>{p.img ? <span className="pill pill--ok">Photo</span> : <span className="pill pill--warn">No photo</span>}</td>
               <td><button className="btn btn--white btn--sm" type="button" onClick={() => { setIsNew(false); setEdit({ ...p }); }}>Edit</button></td>
@@ -107,13 +111,13 @@ export function ProductsAdmin() {
           ))}
         </tbody>
       </table></div>
-      {edit && <ProductEditor key={edit.id || "new"} product={edit} isNew={isNew} existing={items} cats={cats} onClose={() => setEdit(null)} onSaved={async () => { setEdit(null); await load(); }} />}
+      {edit && <ProductEditor key={edit.id || "new"} product={edit} isNew={isNew} existing={items} cats={cats} cost={costs[edit.id] ?? null} onClose={() => setEdit(null)} onSaved={async () => { setEdit(null); await load(); }} />}
     </div>
   );
 }
 
-function ProductEditor({ product, isNew, existing, cats, onClose, onSaved }:
-  { product: Product; isNew: boolean; existing: Product[]; cats: StoreCategory[]; onClose: () => void; onSaved: () => void }) {
+function ProductEditor({ product, isNew, existing, cats, cost: cost0, onClose, onSaved }:
+  { product: Product; isNew: boolean; existing: Product[]; cats: StoreCategory[]; cost: number | null; onClose: () => void; onSaved: () => void }) {
   const [p, setP] = useState<Product>(product);
   const [details, setDetails] = useState(product.details.map(([k, v]) => `${k}: ${v}`).join("\n"));
   const [preview, setPreview] = useState<string | null>(product.img);
@@ -121,6 +125,9 @@ function ProductEditor({ product, isNew, existing, cats, onClose, onSaved }:
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [over, setOver] = useState(false);
+  const [cost, setCost] = useState(cost0 == null ? "" : String(cost0));
+  const [mPct, setMPct] = useState(20);
+  const [uPct, setUPct] = useState(50);
   const [gal, setGal] = useState<GItem[]>(product.gallery.map((u) => ({ url: u, preview: u })));
   const [vars, setVars] = useState<VDraft[]>(product.variants.map((v) => ({ ...v, preview: v.img })));
   const nameRef = useRef<HTMLInputElement>(null);
@@ -138,6 +145,13 @@ function ProductEditor({ product, isNew, existing, cats, onClose, onSaved }:
     try { const r = await prepareImage(f); setBlob(r.blob); setPreview(r.preview); setErr(""); } catch (e) { setErr((e as Error).message); }
   };
 
+  const applyMargin = () => {
+    const c = parseFloat(cost);
+    if (!(c > 0)) return setErr("Enter your purchase cost first.");
+    const price = Math.ceil(c * (1 + mPct / 100));
+    const step = price < 100 ? 5 : 10;
+    setP((x) => ({ ...x, price, mrp: Math.max(price, Math.ceil((price * (1 + uPct / 100)) / step) * step) })); setErr("");
+  };
   const addGallery = async (files: FileList | null) => {
     if (!files?.length) return;
     const room = MAX_GALLERY - gal.length;
@@ -220,6 +234,11 @@ function ProductEditor({ product, isNew, existing, cats, onClose, onSaved }:
       }
       const { error } = await sb.from("store_products").upsert(toRow(next));
       if (error) throw new Error("Couldn't save: " + error.message);
+      const cv = parseFloat(cost);
+      if (cost.trim() !== "" && cv >= 0) {
+        const cr = await sb.from("store_product_costs").upsert({ product_id: id, cost: cv, updated_at: new Date().toISOString() });
+        if (cr.error) throw new Error("Couldn't save cost: " + cr.error.message);
+      } else if (!isNew) await sb.from("store_product_costs").delete().eq("product_id", id);
       const keep = finalVars.map((v) => v.id);
       const gone = product.variants.filter((v) => !keep.includes(v.id));
       if (gone.length) {
@@ -324,6 +343,15 @@ function ProductEditor({ product, isNew, existing, cats, onClose, onSaved }:
                 <div className="field"><label htmlFor="edMrp">MRP (₹) — shown struck off</label><input id="edMrp" type="number" min={1} step={1} value={p.mrp || ""} onChange={(e) => set("mrp", Math.round(+e.target.value))} /></div>
                 <div className="field"><label htmlFor="edPrice">Selling price (₹)</label><input id="edPrice" type="number" min={1} step={1} value={p.price || ""} onChange={(e) => set("price", Math.round(+e.target.value))} /></div>
               </div>
+              <div className="ed__cost">
+                <div className="field"><label htmlFor="edCost">Your purchase cost (₹) <small>private — customers never see this</small></label><input id="edCost" type="number" min={0} step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="e.g. 58" /></div>
+                <div className="row3">
+                  <div className="field"><label htmlFor="edMg">Margin %</label><input id="edMg" type="number" min={0} step={1} value={mPct} onChange={(e) => setMPct(Math.max(0, +e.target.value))} /></div>
+                  <div className="field"><label htmlFor="edUp">MRP above price %</label><input id="edUp" type="number" min={0} step={1} value={uPct} onChange={(e) => setUPct(Math.max(0, +e.target.value))} /></div>
+                  <div className="field"><label>&nbsp;</label><button className="btn btn--white btn--sm" type="button" onClick={applyMargin}>Set price &amp; MRP</button></div>
+                </div>
+                {parseFloat(cost) > 0 && pr > 0 && <p className="ed__hint">Margin now: <b>{Math.round((pr / parseFloat(cost) - 1) * 100)}%</b> ({rupee(pr - parseFloat(cost))} per pack)</p>}
+              </div>
               <p className="ed__priceprev">{mrp > 0 && pr > 0 ? <>Customers see <b>{rupee(pr)}</b>{mrp > pr && <> <s>MRP {rupee(mrp)}</s> · {Math.round((1 - pr / mrp) * 100)}% off</>}</> : "Enter MRP and selling price to preview."}</p>
             </div>
           </div>
@@ -333,6 +361,7 @@ function ProductEditor({ product, isNew, existing, cats, onClose, onSaved }:
             <div>
               <div className="field"><label htmlFor="edCert">Organic certificate / lot no. (optional)</label><input id="edCert" value={p.cert} onChange={(e) => set("cert", e.target.value)} placeholder="e.g. NPOP / PGS-India ID" /></div>
               <label className="ed__check"><input type="checkbox" checked={p.active} onChange={(e) => set("active", e.target.checked)} /> Show in store</label>
+              <label className="ed__check"><input type="checkbox" checked={p.organic} onChange={(e) => set("organic", e.target.checked)} /> Sold as organic (shows the Organic badge — only tick if you hold the certificate)</label>
               <label className="ed__check"><input type="checkbox" checked={p.isNew} onChange={(e) => set("isNew", e.target.checked)} /> Show a NEW badge</label>
             </div>
           </div>

@@ -43,10 +43,19 @@ export interface Product {
   color: string;
   sort: number;
   active: boolean;
+  /** Food sold as organic. Other products (and foods that are not organic) show no organic badge. */
+  organic: boolean;
+  /** Published review average (0 when none) and count. */
+  ratingAvg: number;
+  ratingCount: number;
   /** Extra photos (public URLs) shown after the main photo. */
   gallery: string[];
   /** Pack sizes / colours. Empty = the product is bought as-is. */
   variants: ProductVariant[];
+}
+
+export interface Review {
+  id: string; productId: string; author: string; rating: number; title: string; body: string; createdAt: string;
 }
 
 export interface StoreSettings {
@@ -93,7 +102,7 @@ export interface ProductRow {
   id: string; cat: string; name: string; ta: string; size: string; price: number; mrp: number;
   stock: number | null; description: string; details: unknown; cert: string; is_new: boolean;
   image_url: string | null; image_path: string | null; pack_type: string; tag: string; color: string;
-  sort: number; active: boolean; sub?: string | null; gallery?: string[] | null;
+  sort: number; active: boolean; sub?: string | null; gallery?: string[] | null; organic?: boolean;
 }
 
 export const ORDER_STATUSES = ["NEW", "CONFIRMED", "PACKED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED"] as const;
